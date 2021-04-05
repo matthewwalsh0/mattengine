@@ -15,45 +15,87 @@ namespace MattEngine {
         
         GLuint vertexBuffer, indexBuffer, vertexArray;
 
-        float squareVertices[5 * 4] = {
-            0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-            1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-            1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
-            0.0f, 1.0f, 0.0f, 0.0f, 1.0f};
+        float vertices[] = {
+            -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+            0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+            0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+            0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+            -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+            -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 
+
+            -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+            0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+            0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+            0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+            -0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,
+
+            -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+            -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+            -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+            -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
+            -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+            -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+
+            0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+            0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+            0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+            0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
+            0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+            0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
+
+            -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+            0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+            0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+            0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+            -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
+            -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
+
+            -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+            0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
+            0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+            0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+            -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
+            -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
+        };
 
         glGenVertexArrays(1, &vertexArray);
         glBindVertexArray(vertexArray);
         
         glGenBuffers(1, &vertexBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(squareVertices), squareVertices, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), nullptr);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), nullptr);
 
         glEnableVertexAttribArray(1);
         unsigned int offset = 3 * sizeof(float);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (const void*)(intptr_t) offset);
-
-        glGenBuffers(1, &indexBuffer);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-        unsigned int indices[6] = { 0, 1, 2, 2, 3, 0 };
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (const void*)(intptr_t) offset);
 
         std::string vertexSrc = R"(
             #version 330 core
             
             layout(location = 0) in vec3 a_Position;
+            layout(location = 1) in vec3 a_Normal;
 
             uniform mat4 u_View;
-            uniform mat4 u_Transform;
+            uniform mat4 u_Model;
+            uniform mat4 u_Projection;
 
+            out vec3 v_FragmentPosition;  
             out vec3 v_Position;
+            out vec3 v_Normal;
+            out mat4 v_Model;
 
             void main()
             {
                 v_Position = a_Position;
-                gl_Position = u_View * u_Transform * vec4(a_Position, 1.0);	
+                v_Normal = a_Normal;
+                v_Model = u_Model;
+                v_FragmentPosition = vec3(u_Model * vec4(a_Position, 1.0));
+
+                gl_Position = u_Projection * u_View * u_Model * vec4(a_Position, 1.0);	
             }
         )";
 
@@ -62,24 +104,25 @@ namespace MattEngine {
             
             layout(location = 0) out vec4 color;
 
-            uniform bool u_Gradient = false;
             uniform vec3 u_Colour;
-            uniform vec3 u_ColourStart;
+            uniform vec3 u_LightPosition = vec3(1.0, 1.0, 1.0);
+            uniform vec3 u_LightColour = vec3(1.0, 1.0, 1.0);
+            uniform bool u_IsLight = false;
 
             in vec3 v_Position;
+            in vec3 v_Normal;
+            in vec3 v_FragmentPosition;
+            in mat4 v_Model;
 
             void main()
             {
-                if(!u_Gradient) {
-                    color = vec4(u_Colour, 1.0);
-                } else {
-                    float multiplier = (v_Position.x * 0.5) + (v_Position.y * 0.5);
-                    color = vec4(
-                        u_ColourStart.x + ((u_Colour.x - u_ColourStart.x) * multiplier),
-                        u_ColourStart.y + ((u_Colour.y - u_ColourStart.y) * multiplier),
-                        u_ColourStart.z + ((u_Colour.z - u_ColourStart.z) * multiplier),
-                        1.0);
-                }
+                vec3 normal = vec3(v_Model * vec4(v_Normal, 1.0));
+                vec3 lightDirection = normalize(u_LightPosition - v_FragmentPosition);  
+                float diffuseFactor = u_IsLight ? 1.0 : max(dot(normal, lightDirection), 0.15);
+                vec3 diffuseColour = diffuseFactor * u_LightColour;
+                vec3 finalColour = diffuseColour * u_Colour;
+
+                color = vec4(finalColour, 1.0);
             }
         )";
 
@@ -143,8 +186,9 @@ namespace MattEngine {
         glBindVertexArray(vertexArray);
 
         glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_DEPTH_TEST);
 
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);   
 
         FT_Library ft;
@@ -267,6 +311,42 @@ namespace MattEngine {
         glUniformMatrix4fv(transformLocation, 1, GL_FALSE, glm::value_ptr(transform));
 
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+    }
+
+    void Renderer::drawCube(RenderRequest& request) {
+        glUseProgram(m_shaderColour);
+
+        GLint colourLocation = glGetUniformLocation(m_shaderColour, "u_Colour");
+        GLint viewLocation = glGetUniformLocation(m_shaderColour , "u_View");
+        GLint modelLocation = glGetUniformLocation(m_shaderColour , "u_Model");
+        GLint projectionLocation = glGetUniformLocation(m_shaderColour, "u_Projection");
+        GLint isLightLocation = glGetUniformLocation(m_shaderColour, "u_IsLight");
+
+        glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(request.Size.x, request.Size.y, request.Size.z));
+        glm::mat4 translate = glm::translate(glm::mat4(1.0f), glm::vec3(request.Position.x, request.Position.y, request.Position.z));        
+        glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), glm::radians(request.Rotation.x), glm::vec3(1.0f, 0.0f, 0.0f))
+            * glm::rotate(glm::mat4(1.0f), glm::radians(request.Rotation.y), glm::vec3(0.0f, 1.0f, 0.0f))
+            * glm::rotate(glm::mat4(1.0f), glm::radians(request.Rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+            
+        glm::mat4 projection = glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
+        glm::mat4 view = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
+        glm::mat4 model = translate * rotate * scale;
+        
+        glUniform3f(colourLocation, request.Colour.x, request.Colour.y, request.Colour.z);
+        glUniformMatrix4fv(viewLocation, 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(modelLocation, 1, GL_FALSE, glm::value_ptr(model));
+        glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, glm::value_ptr(projection));
+        glUniform1i(isLightLocation, request.IsLight);
+
+        if(request.IsLight) {
+            GLint lightPositionLocation = glGetUniformLocation(m_shaderColour, "u_LightPosition");
+            GLint lightColourLocation = glGetUniformLocation(m_shaderColour, "u_LightColour");
+
+            glUniform3f(lightPositionLocation, request.Position.x, request.Position.y, request.Position.z);
+            glUniform3f(lightColourLocation, request.Colour.x, request.Colour.y, request.Colour.z);
+        }
+
+        glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 
     const unsigned int Renderer::createShader(const std::string& vertexSrc, const std::string& fragmentSrc) const {

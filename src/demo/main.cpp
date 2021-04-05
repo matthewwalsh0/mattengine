@@ -1,33 +1,34 @@
 #include "Game.h"
 #include "TransformComponent.h"
 #include "ColourComponent.h"
+#include "TagComponent.h"
+#include "LightComponent.h"
 
 class DemoScene : public MattEngine::Scene {
     private:
         float SPEED = 0.4f;
 
     private:
-        TransformComponent* m_transform;
         float m_deltaX = SPEED;
 
     public:
 
     void onInit() override {
         MattEngine::Entity entity = createEntity();
-        entity.addComponent<TransformComponent>(glm::vec2(0.3f, 0.3f), glm ::vec2(0.4f, 0.4f));
+        entity.addComponent<TagComponent>("Cube");
+        entity.addComponent<TransformComponent>(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
         entity.addComponent<ColourComponent>(glm::vec3(1.0f, 0.0f, 0.0f));
 
-        m_transform = &entity.getComponent<TransformComponent>();
+        MattEngine::Entity light = createEntity();
+        light.addComponent<TransformComponent>(glm::vec3(1.0f, 0.8f, 1.0f), glm::vec3(0.1f, 0.1f, 0.1f));
+        light.addComponent<ColourComponent>(glm::vec3(1.0f, 1.0f, 1.0f));
+        light.addComponent<LightComponent>();
     }
 
     void onUpdate(float deltaTime) override {
-        float currentX = m_transform->Position.x;
-
-        if(currentX > 0.6f || currentX < 0.0f) {
-            m_deltaX *= -1.0f;
-        }
-
-        m_transform->Position.x += m_deltaX * deltaTime;
+        TransformComponent& transform = getEntity("Cube").getComponent<TransformComponent>();
+        transform.Rotation.y += 45.0f * deltaTime;
+        transform.Rotation.x += 45.0f * deltaTime;
     }
 };
 

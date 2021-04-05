@@ -9,6 +9,7 @@
 #include "ColourComponent.h"
 #include "ColliderComponent.h"
 #include "DeleteComponent.h"
+#include "LightComponent.h"
 
 #include <stdlib.h>
 #include <time.h>
@@ -178,12 +179,19 @@ namespace MattEngine {
                     texture.Texture, texture.TileCount);
             });
 
-        scene->getRegistry().view<const TransformComponent, const ColourComponent>().each(
-            [&](const TransformComponent& transform, const ColourComponent& colour) {
-                renderer.drawQuad(
-                    transform.Position.x, transform.Position.y,
-                    transform.Size.x, transform.Size.y,
-                    colour.Colour);
+        scene->getRegistry().view<TransformComponent, ColourComponent, LightComponent>().each(
+            [&](TransformComponent& transform, ColourComponent& colour, LightComponent& light) {
+                renderer.drawCube(RenderRequest(transform.Position, transform.Size)
+                    .withColour(colour.Colour)
+                    .withRotation(transform.Rotation)
+                    .withIsLight());
+            });
+
+        scene->getRegistry().view<TransformComponent, ColourComponent>().each(
+            [&](TransformComponent& transform, ColourComponent& colour) {
+                renderer.drawCube(RenderRequest(transform.Position, transform.Size)
+                    .withColour(colour.Colour)
+                    .withRotation(transform.Rotation));
             });
 
         scene->getRegistry().view<const TextComponent, const ColourComponent>().each(
