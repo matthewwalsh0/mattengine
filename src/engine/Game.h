@@ -1,49 +1,51 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include "Renderer.h"
-#include "Window.h"
-#include "Entity.h"
-#include "TransformComponent.h"
-#include "PhysicsComponent.h"
 #include "ColliderComponent.h"
+#include "Entity.h"
+#include "PhysicsComponent.h"
+#include "Renderer.h"
 #include "Scene.h"
+#include "TransformComponent.h"
+#include "Window.h"
 
 #include <string>
 
 namespace MattEngine {
 
-    class Game {
-    public:
-        virtual void onInit() {};
-    public:
-        Game(Window& window);
-        void start();
-        void onUpdate(float deltaTime, Renderer& renderer, Window& window);
-        const float inline getFPS() const { return m_fps; }
-        std::shared_ptr<Scene> simulateUpdate(std::shared_ptr<Scene> scene, float deltaTime);
+class Game {
+public:
+	virtual void onInit(){};
 
-        template<typename T, typename... Args>
-        void loadScene(Args&&... args) {
-            m_scene.reset((Scene*) new T(std::forward<Args>(args)...));
-            Scene::setCurrent(m_scene);
-            m_scene->onInit();
-        }
+public:
+	Game(Window& window);
+	void start();
+	void onUpdate(float deltaTime, Renderer& renderer, Window& window);
+	const float inline getFPS() const { return m_fps; }
+	std::shared_ptr<Scene> simulateUpdate(
+		std::shared_ptr<Scene> scene, float deltaTime);
 
-    public:
-        inline static Game& getInstance() {
-            return *s_instance;
-        }
-    private:
-        inline static Game* s_instance;
-    private:
-        void onUpdate(std::shared_ptr<Scene> scene, float deltaTime, Renderer& renderer, Window& window);
+	template <typename T, typename... Args> void loadScene(Args&&... args) {
+		m_scene.reset((Scene*)new T(std::forward<Args>(args)...));
+		Scene::setCurrent(m_scene);
+		m_scene->onInit();
+	}
 
-        Window& m_window;
-        float m_fps;
-        std::string m_title;
-        std::shared_ptr<Scene> m_scene;
-    };
-}
+public:
+	inline static Game& getInstance() { return *s_instance; }
+
+private:
+	inline static Game* s_instance;
+
+private:
+	void onUpdate(std::shared_ptr<Scene> scene, float deltaTime,
+		Renderer& renderer, Window& window);
+
+	Window& m_window;
+	float m_fps;
+	std::string m_title;
+	std::shared_ptr<Scene> m_scene;
+};
+} // namespace MattEngine
 
 #endif

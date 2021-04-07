@@ -2,8 +2,8 @@
 #define LIGHT_COMPONENT_H
 
 struct LightComponent {
-    bool dummy = true;
-    LightComponent() {}
+	bool dummy = true;
+	LightComponent() {}
 };
 
 #endif

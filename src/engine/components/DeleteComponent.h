@@ -2,8 +2,8 @@
 #define DELETE_COMPONENT_H
 
 struct DeleteComponent {
-    bool Delete = true;
-    DeleteComponent() {}
+	bool Delete = true;
+	DeleteComponent() {}
 };
 
 #endif

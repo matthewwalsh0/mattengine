@@ -6,12 +6,13 @@
 #include <string>
 
 struct TextComponent {
-    std::string Text;
-    glm::vec2 Position;
-    float Height;
+	std::string Text;
+	glm::vec2 Position;
+	float Height;
 
-    TextComponent(const std::string& text, const glm::vec2& position, float height) :
-        Text(text), Position(position), Height(height) {}
+	TextComponent(
+		const std::string& text, const glm::vec2& position, float height)
+		: Text(text), Position(position), Height(height) {}
 };
 
 #endif

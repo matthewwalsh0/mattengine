@@ -4,10 +4,10 @@
 #include <string>
 
 struct TagComponent {
-    std::string Tag = "New Entity";
+	std::string Tag = "New Entity";
 
-    TagComponent(const std::string& tag) : Tag(tag) {}
-    TagComponent(const TagComponent& other) : Tag(other.Tag) {}
+	TagComponent(const std::string& tag) : Tag(tag) {}
+	TagComponent(const TagComponent& other) : Tag(other.Tag) {}
 };
 
 #endif

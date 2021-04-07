@@ -9,19 +9,14 @@
 
 namespace MattEngine {
 
-    enum CollisionType {
-        HORIZONTAL,
-        VERTICAL,
-        NONE
-    };
+enum CollisionType { HORIZONTAL, VERTICAL, NONE };
 
-    class Physics {
-        public:
-            static CollisionType isColliding(
-                const glm::vec2& firstPosition, const glm::vec2& firstSize,
-                const glm::vec2& secondPosition, const glm::vec2& secondSize,
-                const glm::vec2& oldFirstPosition);
-    };
-}
+class Physics {
+public:
+	static CollisionType isColliding(const glm::vec2& firstPosition,
+		const glm::vec2& firstSize, const glm::vec2& secondPosition,
+		const glm::vec2& secondSize, const glm::vec2& oldFirstPosition);
+};
+} // namespace MattEngine
 
 #endif
