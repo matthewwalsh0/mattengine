@@ -2,15 +2,6 @@
 #define RENDERER_H
 
 #include "Shader.h"
-#include "Texture.h"
-
-#include <ft2build.h>
-#include <glad/glad.h>
-#include <glm/gtc/type_ptr.hpp>
-#include FT_FREETYPE_H
-
-#include <map>
-#include <string>
 
 namespace MattEngine {
 
