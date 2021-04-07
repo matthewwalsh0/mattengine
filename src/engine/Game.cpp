@@ -185,15 +185,6 @@ void Game::onUpdate(std::shared_ptr<Scene> scene, float deltaTime,
 		});
 
 	scene->getRegistry()
-		.view<const TransformComponent, TextureComponent>()
-		.each([&](const TransformComponent& transform,
-				  TextureComponent& texture) {
-			renderer.drawQuadTexture(transform.Position.x, transform.Position.y,
-				transform.Size.x, transform.Size.y, texture.Texture,
-				texture.TileCount);
-		});
-
-	scene->getRegistry()
 		.view<TransformComponent, ColourComponent, LightComponent>()
 		.each([&](TransformComponent& transform, ColourComponent& colour,
 				  LightComponent& light) {
@@ -208,13 +199,6 @@ void Game::onUpdate(std::shared_ptr<Scene> scene, float deltaTime,
 			renderer.drawCube(RenderRequest(transform.Position, transform.Size)
 								  .withColour(colour.Colour)
 								  .withRotation(transform.Rotation));
-		});
-
-	scene->getRegistry()
-		.view<const TextComponent, const ColourComponent>()
-		.each([&](const TextComponent& text, const ColourComponent& colour) {
-			renderer.drawText(text.Position.x, text.Position.y, text.Height,
-				text.Text, colour.Colour);
 		});
 
 	scene->getRegistry().view<const DeleteComponent>().each(
