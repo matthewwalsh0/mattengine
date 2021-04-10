@@ -207,5 +207,6 @@ void Game::onUpdate(std::shared_ptr<Scene> scene, float deltaTime,
 		});
 
 	scene->onUpdate(deltaTime);
+	renderer.onUpdate(deltaTime);
 }
 } // namespace MattEngine

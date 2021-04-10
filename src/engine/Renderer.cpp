@@ -20,6 +20,8 @@ void Renderer::init() {
 	m_shader.bind();
 }
 
+void Renderer::onUpdate(float deltaTime) { m_camera.onUpdate(deltaTime); }
+
 void Renderer::drawCube(RenderRequest& request) {
 	glm::mat4 scale = glm::scale(glm::mat4(1.0f),
 		glm::vec3(request.Size.x, request.Size.y, request.Size.z));
@@ -35,16 +37,12 @@ void Renderer::drawCube(RenderRequest& request) {
 		glm::rotate(glm::mat4(1.0f), glm::radians(request.Rotation.z),
 			glm::vec3(0.0f, 0.0f, 1.0f));
 
-	glm::mat4 projection =
-		glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
-	glm::mat4 view =
-		glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.0f));
 	glm::mat4 model = translate * rotate * scale;
 
 	m_shader.setVec3("u_Colour", request.Colour);
-	m_shader.setMat4("u_View", view);
+	m_shader.setMat4("u_View", m_camera.getView());
 	m_shader.setMat4("u_Model", model);
-	m_shader.setMat4("u_Projection", projection);
+	m_shader.setMat4("u_Projection", m_camera.getProjection());
 	m_shader.setBool("u_IsLight", request.IsLight);
 
 	if (request.IsLight) {

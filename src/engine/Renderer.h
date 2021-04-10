@@ -1,6 +1,7 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
+#include "PerspectiveCamera.h"
 #include "Shader.h"
 
 namespace MattEngine {
@@ -40,6 +41,7 @@ public:
 class Renderer {
 public:
 	void init();
+	void onUpdate(float deltaTime);
 	void drawCube(RenderRequest& request);
 
 public:
@@ -47,6 +49,7 @@ public:
 
 private:
 	Shader m_shader = Shader("assets/shaders/core.glsl");
+	PerspectiveCamera m_camera = PerspectiveCamera();
 
 private:
 	inline static Renderer* s_instance;
