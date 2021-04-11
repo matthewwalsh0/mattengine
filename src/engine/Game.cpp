@@ -33,7 +33,6 @@ void Game::start() {
 	float currentTime = glfwGetTime();
 	float fpsCurrentTime = glfwGetTime();
 	int frameCount = 0;
-	float accumulator = 0.0f;
 
 	while (m_window.isOpen()) {
 		float newTime = glfwGetTime();
@@ -53,14 +52,9 @@ void Game::start() {
 			m_window.setTitle(newTitleOld);
 		}
 
-		accumulator += deltaTime;
-
-		while (accumulator >= UPDATE_DELTA) {
-			onUpdate(UPDATE_DELTA, renderer, m_window);
-			accumulator -= UPDATE_DELTA;
-		}
-
+		onUpdate(deltaTime, renderer, m_window);
 		m_window.update();
+
 		frameCount += 1;
 	}
 
@@ -195,10 +189,21 @@ void Game::onUpdate(std::shared_ptr<Scene> scene, float deltaTime,
 		});
 
 	scene->getRegistry().view<TransformComponent, ColourComponent>().each(
-		[&](TransformComponent& transform, ColourComponent& colour) {
-			renderer.drawCube(RenderRequest(transform.Position, transform.Size)
-								  .withColour(colour.Colour)
-								  .withRotation(transform.Rotation));
+		[&](auto rawEntity, TransformComponent& transform,
+			ColourComponent& colour) {
+			RenderRequest request =
+				RenderRequest(transform.Position, transform.Size)
+					.withColour(colour.Colour)
+					.withRotation(transform.Rotation);
+
+			Entity entity = scene->createEntity(rawEntity);
+
+			if (entity.hasComponent<TextureComponent>()) {
+				request.Texture =
+					&entity.getComponent<TextureComponent>().Texture;
+			}
+
+			renderer.drawCube(request);
 		});
 
 	scene->getRegistry().view<const DeleteComponent>().each(

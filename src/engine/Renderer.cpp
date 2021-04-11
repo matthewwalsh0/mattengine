@@ -11,7 +11,8 @@ namespace MattEngine {
 void Renderer::init() {
 	s_instance = this;
 
-	VertexArray(Vertices::CUBE, 6 * 6, {{GL_FLOAT, 3}, {GL_FLOAT, 3}});
+	VertexArray(
+		Vertices::CUBE, 6 * 6, {{GL_FLOAT, 3}, {GL_FLOAT, 3}, {GL_FLOAT, 2}});
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
@@ -39,11 +40,18 @@ void Renderer::drawCube(RenderRequest& request) {
 
 	glm::mat4 model = translate * rotate * scale;
 
+	if (request.Texture) {
+		request.Texture->bind();
+	} else {
+		m_defaultTexture.bind();
+	}
+
 	m_shader.setVec3("u_Colour", request.Colour);
 	m_shader.setMat4("u_View", m_camera.getView());
 	m_shader.setMat4("u_Model", model);
 	m_shader.setMat4("u_Projection", m_camera.getProjection());
 	m_shader.setBool("u_IsLight", request.IsLight);
+	m_shader.setInt("u_Texture", 0);
 
 	if (request.IsLight) {
 		m_shader.setVec3("u_LightPosition", request.Position);

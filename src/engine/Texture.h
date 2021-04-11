@@ -9,9 +9,10 @@ class Texture {
 public:
 	Texture(const std::string& path);
 	Texture(const Texture& texture);
-	inline const int GetWidth() { return m_width; }
-	inline const int GetHeight() { return m_height; }
-	void Bind() const;
+	Texture(const int width, const int height, const int channels, void* data);
+	inline const int getWidth() { return m_width; }
+	inline const int getHeight() { return m_height; }
+	void bind() const;
 
 private:
 	std::string m_path;

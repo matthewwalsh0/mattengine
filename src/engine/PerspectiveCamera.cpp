@@ -15,20 +15,30 @@ void PerspectiveCamera::onUpdate(float deltaTime) {
 	if (Window::getInstance().isKeyDown(GLFW_KEY_W)) {
 		m_position += m_forward * deltaTime * m_speed;
 		invalidate();
-	} else if (Window::getInstance().isKeyDown(GLFW_KEY_S)) {
+	}
+
+	if (Window::getInstance().isKeyDown(GLFW_KEY_S)) {
 		m_position -= m_forward * deltaTime * m_speed;
 		invalidate();
-	} else if (Window::getInstance().isKeyDown(GLFW_KEY_Q)) {
+	}
+
+	if (Window::getInstance().isKeyDown(GLFW_KEY_Q)) {
 		m_rotation.y -= deltaTime * m_rotationSpeed;
 		invalidate();
-	} else if (Window::getInstance().isKeyDown(GLFW_KEY_E)) {
+	}
+
+	if (Window::getInstance().isKeyDown(GLFW_KEY_E)) {
 		m_rotation.y += deltaTime * m_rotationSpeed;
 		invalidate();
-	} else if (Window::getInstance().isKeyDown(GLFW_KEY_A)) {
+	}
+
+	if (Window::getInstance().isKeyDown(GLFW_KEY_A)) {
 		m_position -=
 			glm::normalize(glm::cross(m_forward, m_up)) * deltaTime * m_speed;
 		invalidate();
-	} else if (Window::getInstance().isKeyDown(GLFW_KEY_D)) {
+	}
+
+	if (Window::getInstance().isKeyDown(GLFW_KEY_D)) {
 		m_position +=
 			glm::normalize(glm::cross(m_forward, m_up)) * deltaTime * m_speed;
 		invalidate();

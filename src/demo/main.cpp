@@ -2,6 +2,7 @@
 #include "Game.h"
 #include "LightComponent.h"
 #include "TagComponent.h"
+#include "TextureComponent.h"
 #include "TransformComponent.h"
 
 class DemoScene : public MattEngine::Scene {
@@ -11,13 +12,17 @@ private:
 private:
 	float m_deltaX = SPEED;
 
+	MattEngine::Texture m_texture =
+		MattEngine::Texture("assets/textures/wood.jpg");
+
 public:
 	void onInit() override {
 		MattEngine::Entity entity = createEntity();
 		entity.addComponent<TagComponent>("Cube");
 		entity.addComponent<TransformComponent>(
 			glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-		entity.addComponent<ColourComponent>(glm::vec3(1.0f, 0.0f, 0.0f));
+		entity.addComponent<ColourComponent>(glm::vec3(1.0f, 1.0f, 1.0f));
+		entity.addComponent<TextureComponent>(m_texture);
 
 		MattEngine::Entity light = createEntity();
 		light.addComponent<TransformComponent>(

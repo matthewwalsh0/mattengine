@@ -3,6 +3,7 @@
 
 #include "PerspectiveCamera.h"
 #include "Shader.h"
+#include "Texture.h"
 
 namespace MattEngine {
 
@@ -16,6 +17,7 @@ public:
 	glm::vec3 Size;
 	glm::vec3 Rotation = DEFAULT;
 	glm::vec3 Colour = DEFAULT_COLOUR;
+	Texture* Texture = nullptr;
 	bool IsLight = false;
 
 public:
@@ -50,6 +52,8 @@ public:
 private:
 	Shader m_shader = Shader("assets/shaders/core.glsl");
 	PerspectiveCamera m_camera = PerspectiveCamera();
+	unsigned int m_defaultTextureData[1] = {0xFFFFFF};
+	Texture m_defaultTexture = Texture(1, 1, 3, m_defaultTextureData);
 
 private:
 	inline static Renderer* s_instance;

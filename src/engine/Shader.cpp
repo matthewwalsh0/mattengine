@@ -96,3 +96,7 @@ void Shader::setVec3(const std::string& name, const glm::vec3& value) {
 void Shader::setBool(const std::string& name, bool value) {
 	glUniform1i(glGetUniformLocation(ShaderId, name.c_str()), value);
 }
+
+void Shader::setInt(const std::string& name, int value) {
+	glUniform1i(glGetUniformLocation(ShaderId, name.c_str()), value);
+}
