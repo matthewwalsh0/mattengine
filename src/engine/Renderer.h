@@ -1,6 +1,7 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
+#include "Mesh.h"
 #include "PerspectiveCamera.h"
 #include "Shader.h"
 #include "Texture.h"
@@ -18,38 +19,25 @@ public:
 	glm::vec3 Rotation = DEFAULT;
 	glm::vec3 Colour = DEFAULT_COLOUR;
 	Texture* Texture = nullptr;
+	VertexArray* VertexArray = nullptr;
 	bool IsLight = false;
 
 public:
 	RenderRequest(glm::vec3& position, glm::vec3& size)
 		: Position(position), Size(size) {}
-
-	RenderRequest& withColour(glm::vec3& colour) {
-		Colour = colour;
-		return *this;
-	}
-
-	RenderRequest& withRotation(glm::vec3& rotation) {
-		Rotation = rotation;
-		return *this;
-	}
-
-	RenderRequest& withIsLight() {
-		IsLight = true;
-		return *this;
-	}
 };
 
 class Renderer {
 public:
 	void init();
 	void onUpdate(float deltaTime);
-	void drawCube(RenderRequest& request);
+	void draw(RenderRequest& request);
 
 public:
 	inline static Renderer& getInstance() { return *s_instance; }
 
 private:
+	std::shared_ptr<VertexArray> m_cube;
 	Shader m_shader = Shader("assets/shaders/core.glsl");
 	PerspectiveCamera m_camera = PerspectiveCamera();
 	unsigned int m_defaultTextureData[1] = {0xFFFFFF};

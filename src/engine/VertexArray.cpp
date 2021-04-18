@@ -20,8 +20,9 @@ static unsigned int getAttributeTypeSize(int type) {
 } // namespace Utils
 
 VertexArray::VertexArray(const void* data, unsigned int count,
+	const unsigned int* indices, unsigned int indexCount,
 	std::initializer_list<VertexAttribute> attributes)
-	: m_attributes(attributes) {
+	: m_attributes(attributes), IndexCount(indexCount) {
 
 	glGenVertexArrays(1, &m_arrayId);
 	glBindVertexArray(m_arrayId);
@@ -36,6 +37,13 @@ VertexArray::VertexArray(const void* data, unsigned int count,
 	glGenBuffers(1, &m_bufferId);
 	glBindBuffer(GL_ARRAY_BUFFER, m_bufferId);
 	glBufferData(GL_ARRAY_BUFFER, count * totalSize, data, GL_STATIC_DRAW);
+
+	if (indexCount > 0) {
+		glGenBuffers(1, &m_indexBufferId);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indexBufferId);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned int),
+			indices, GL_STATIC_DRAW);
+	}
 
 	int attributeIndex = 0;
 	unsigned int offset = 0;

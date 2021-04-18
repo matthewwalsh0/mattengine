@@ -4,6 +4,8 @@
 #include "ColourComponent.h"
 #include "DeleteComponent.h"
 #include "LightComponent.h"
+#include "Mesh.h"
+#include "ModelComponent.h"
 #include "PhysicsComponent.h"
 #include "ScriptComponent.h"
 #include "TextComponent.h"
@@ -62,7 +64,7 @@ void Game::start() {
 }
 
 void Game::onUpdate(float deltaTime, Renderer& renderer, Window& window) {
-	glClearColor(0.0f, 0.0f, 0.0f, 1);
+	glClearColor(0.5f, 0.5f, 0.5f, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	onUpdate(m_scene, deltaTime, renderer, window);
@@ -182,28 +184,41 @@ void Game::onUpdate(std::shared_ptr<Scene> scene, float deltaTime,
 		.view<TransformComponent, ColourComponent, LightComponent>()
 		.each([&](TransformComponent& transform, ColourComponent& colour,
 				  LightComponent& light) {
-			renderer.drawCube(RenderRequest(transform.Position, transform.Size)
-								  .withColour(colour.Colour)
-								  .withRotation(transform.Rotation)
-								  .withIsLight());
+			RenderRequest request(transform.Position, transform.Size);
+			request.Colour = colour.Colour;
+			request.Rotation = transform.Rotation;
+			request.IsLight = true;
+
+			renderer.draw(request);
 		});
 
-	scene->getRegistry().view<TransformComponent, ColourComponent>().each(
-		[&](auto rawEntity, TransformComponent& transform,
-			ColourComponent& colour) {
-			RenderRequest request =
-				RenderRequest(transform.Position, transform.Size)
-					.withColour(colour.Colour)
-					.withRotation(transform.Rotation);
+	scene->getRegistry()
+		.view<TransformComponent, ColourComponent, TextureComponent>()
+		.each([&](auto rawEntity, TransformComponent& transform,
+				  ColourComponent& colour, TextureComponent& texture) {
+			RenderRequest request(transform.Position, transform.Size);
+			request.Colour = colour.Colour;
+			request.Rotation = transform.Rotation;
+			request.Texture = &texture.Texture;
 
-			Entity entity = scene->createEntity(rawEntity);
+			renderer.draw(request);
+		});
 
-			if (entity.hasComponent<TextureComponent>()) {
-				request.Texture =
-					&entity.getComponent<TextureComponent>().Texture;
+	scene->getRegistry()
+		.view<TransformComponent, ColourComponent, ModelComponent>()
+		.each([&](auto rawEntity, TransformComponent& transform,
+				  ColourComponent& colour, ModelComponent& model) {
+			RenderRequest request(transform.Position, transform.Size);
+			request.Colour = colour.Colour;
+			request.Rotation = transform.Rotation;
+
+			for (unsigned int i = 0; i < model.Model.Meshes.size(); i++) {
+				Mesh& mesh = model.Model.Meshes[i];
+				request.VertexArray = &mesh.VertexArray;
+				request.Texture = mesh.Texture;
+
+				renderer.draw(request);
 			}
-
-			renderer.drawCube(request);
 		});
 
 	scene->getRegistry().view<const DeleteComponent>().each(

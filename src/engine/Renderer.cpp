@@ -11,8 +11,8 @@ namespace MattEngine {
 void Renderer::init() {
 	s_instance = this;
 
-	VertexArray(
-		Vertices::CUBE, 6 * 6, {{GL_FLOAT, 3}, {GL_FLOAT, 3}, {GL_FLOAT, 2}});
+	m_cube.reset(new VertexArray(Vertices::CUBE, 6 * 6, {}, 0,
+		{{GL_FLOAT, 3}, {GL_FLOAT, 3}, {GL_FLOAT, 2}}));
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
@@ -23,7 +23,7 @@ void Renderer::init() {
 
 void Renderer::onUpdate(float deltaTime) { m_camera.onUpdate(deltaTime); }
 
-void Renderer::drawCube(RenderRequest& request) {
+void Renderer::draw(RenderRequest& request) {
 	glm::mat4 scale = glm::scale(glm::mat4(1.0f),
 		glm::vec3(request.Size.x, request.Size.y, request.Size.z));
 
@@ -46,6 +46,12 @@ void Renderer::drawCube(RenderRequest& request) {
 		m_defaultTexture.bind();
 	}
 
+	if (request.VertexArray) {
+		request.VertexArray->bind();
+	} else {
+		m_cube->bind();
+	}
+
 	m_shader.setVec3("u_Colour", request.Colour);
 	m_shader.setMat4("u_View", m_camera.getView());
 	m_shader.setMat4("u_Model", model);
@@ -58,7 +64,11 @@ void Renderer::drawCube(RenderRequest& request) {
 		m_shader.setVec3("u_LightColour", request.Colour);
 	}
 
-	glDrawArrays(GL_TRIANGLES, 0, 36);
+	if (request.VertexArray && request.VertexArray->IndexCount > 0) {
+		glDrawElements(
+			GL_TRIANGLES, request.VertexArray->IndexCount, GL_UNSIGNED_INT, 0);
+	} else {
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+	}
 }
-
 } // namespace MattEngine

@@ -1,7 +1,8 @@
 #include "Texture.h"
 
-#include "stb_image.h"
+#include "Log.h"
 
+#include "stb_image.h"
 #include <glad/glad.h>
 
 namespace MattEngine {
@@ -44,6 +45,8 @@ Texture::Texture(const std::string& path) {
 	int channels;
 	stbi_set_flip_vertically_on_load(1);
 	stbi_uc* data = stbi_load(path.c_str(), &m_width, &m_height, &channels, 0);
+
+	MATTENGINE_ASSERT(data, "Cannot load texture from file: %s", path.c_str());
 
 	m_textureId = Utils::generateTexture(m_width, m_height, channels, data);
 

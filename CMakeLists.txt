@@ -22,12 +22,15 @@ add_subdirectory(deps/freetype)
 # entt
 include_directories(deps/entt/single_include/entt)
 
+# assimp
+add_subdirectory(deps/assimp)
+
 # mattengine
 file(GLOB_RECURSE SOURCES "src/engine/**.cpp" "src/engine/**.h", "deps/stb_image/*.cpp", "deps/stb_image/*.h")
 include_directories(src/engine)
 include_directories(src/engine/components)
 add_library(mattengine STATIC ${SOURCES} ${GLAD})
-target_link_libraries(mattengine glfw glm freetype)
+target_link_libraries(mattengine glfw glm freetype assimp)
 
 # demo
 file(GLOB_RECURSE DEMO_SOURCES "src/demo/**.cpp" "src/demo/**.h")

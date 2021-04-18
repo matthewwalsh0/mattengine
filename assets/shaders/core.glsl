@@ -46,7 +46,7 @@ void main() {
 	vec3 normal = vec3(v_Model * vec4(v_Normal, 1.0));
 	vec3 lightDirection = normalize(u_LightPosition - v_FragmentPosition);
 	float diffuseFactor =
-		u_IsLight ? 1.0 : max(dot(normal, lightDirection), 0.15);
+		u_IsLight ? 1.0 : max(dot(normal, lightDirection), 0.5);
 	vec3 diffuseColour = diffuseFactor * u_LightColour;
 	vec3 finalColour =
 		diffuseColour * vec3(texture(u_Texture, v_TexturePosition)) * u_Colour;
