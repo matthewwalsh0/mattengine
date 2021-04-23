@@ -25,6 +25,9 @@ private:
 	float m_angle = 45.0f;
 	float m_speed = 10.0f;
 	float m_rotationSpeed = 90.0f;
+	float m_lastMouseX = 0.0f;
+	float m_lastMouseY = 0.0f;
+	bool m_mouseMoved = false;
 };
 
 } // namespace MattEngine

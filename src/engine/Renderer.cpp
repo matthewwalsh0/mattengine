@@ -58,6 +58,7 @@ void Renderer::draw(RenderRequest& request) {
 	m_shader.setMat4("u_Projection", m_camera.getProjection());
 	m_shader.setBool("u_IsLight", request.IsLight);
 	m_shader.setInt("u_Texture", 0);
+	m_shader.setInt("u_TileCount", request.TileCount);
 
 	if (request.IsLight) {
 		m_shader.setVec3("u_LightPosition", request.Position);

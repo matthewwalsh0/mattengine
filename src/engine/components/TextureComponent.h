@@ -13,6 +13,8 @@ struct TextureComponent {
 	TextureComponent(const std::string path, unsigned int tileCount)
 		: Texture(path), TileCount(tileCount) {}
 	TextureComponent(const MattEngine::Texture& texture) : Texture(texture) {}
+	TextureComponent(const MattEngine::Texture& texture, unsigned int tileCount)
+		: Texture(texture), TileCount(tileCount) {}
 };
 
 #endif

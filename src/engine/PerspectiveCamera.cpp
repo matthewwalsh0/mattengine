@@ -43,6 +43,37 @@ void PerspectiveCamera::onUpdate(float deltaTime) {
 			glm::normalize(glm::cross(m_forward, m_up)) * deltaTime * m_speed;
 		invalidate();
 	}
+
+	Window& window = Window::getInstance();
+	if (!window.MouseMoved)
+		return;
+
+	float xOffset = window.MouseX - m_lastMouseX;
+	float yOffset = m_lastMouseY - window.MouseY;
+
+	m_lastMouseX = window.MouseX;
+	m_lastMouseY = window.MouseY;
+
+	if (!m_mouseMoved) {
+		m_mouseMoved = true;
+		return;
+	}
+
+	const float sensitivity = 0.1f;
+	xOffset *= sensitivity;
+	yOffset *= sensitivity;
+
+	m_rotation.y += xOffset;
+	m_rotation.x += yOffset;
+
+	if (m_rotation.x > 89.0f)
+		m_rotation.x = 89.0f;
+	if (m_rotation.x < -89.0f)
+		m_rotation.x = -89.0f;
+
+	if (xOffset != 0 || yOffset != 0) {
+		invalidate();
+	}
 }
 
 void PerspectiveCamera::invalidate() {

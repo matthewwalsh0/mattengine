@@ -21,6 +21,9 @@ private:
 	MattEngine::Texture m_texture =
 		MattEngine::Texture("assets/textures/wood.jpg");
 
+	MattEngine::Texture m_textureFloor =
+		MattEngine::Texture("assets/textures/floor.png");
+
 	float m_lightDirection = 1.0f;
 
 public:
@@ -52,6 +55,13 @@ public:
 			glm::vec3(-2.0f, 1.5f, 1.0f), glm::vec3(0.5f, 0.5f, 0.5f));
 		light.addComponent<ColourComponent>(glm::vec3(1.0f, 1.0f, 1.0f));
 		light.addComponent<LightComponent>();
+
+		MattEngine::Entity floor = createEntity();
+		floor.addComponent<TagComponent>("Floor");
+		floor.addComponent<TransformComponent>(
+			glm::vec3(0.0f, -3.0f, 0.0f), glm::vec3(100.0f, 0.01f, 100.0f));
+		floor.addComponent<ColourComponent>(glm::vec3(1.0f, 1.0f, 1.0f));
+		floor.addComponent<TextureComponent>(m_textureFloor, 50);
 	}
 
 	void onUpdate(float deltaTime) override {

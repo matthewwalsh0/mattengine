@@ -34,6 +34,7 @@ uniform vec3 u_Colour;
 uniform vec3 u_LightPosition = vec3(1.0, 1.0, 1.0);
 uniform vec3 u_LightColour = vec3(1.0, 1.0, 1.0);
 uniform bool u_IsLight = false;
+uniform int u_TileCount = 1;
 uniform sampler2D u_Texture;
 
 in vec3 v_Position;
@@ -51,9 +52,10 @@ void main() {
 	float diffuseStrength = max(dot(normal, lightDirection), 0.0);
 	vec3 diffuse = diffuseStrength * u_LightColour;
 
-	vec3 textureColour = vec3(texture(u_Texture, v_TexturePosition)) * u_Colour;
+	vec4 textureColour = texture(u_Texture, v_TexturePosition * u_TileCount);
+	vec3 texturedColour = vec3(textureColour) * u_Colour;
 	vec3 finalColour =
-		u_IsLight ? u_Colour : (ambient + diffuse) * textureColour;
+		u_IsLight ? u_Colour : (ambient + diffuse) * texturedColour;
 
-	color = vec4(finalColour, 1.0);
+	color = vec4(finalColour, textureColour.a);
 }

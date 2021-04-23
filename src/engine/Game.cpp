@@ -200,6 +200,7 @@ void Game::onUpdate(std::shared_ptr<Scene> scene, float deltaTime,
 			request.Colour = colour.Colour;
 			request.Rotation = transform.Rotation;
 			request.Texture = &texture.Texture;
+			request.TileCount = texture.TileCount;
 
 			renderer.draw(request);
 		});

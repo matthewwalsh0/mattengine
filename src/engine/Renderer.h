@@ -19,6 +19,7 @@ public:
 	glm::vec3 Rotation = DEFAULT;
 	glm::vec3 Colour = DEFAULT_COLOUR;
 	Texture* Texture = nullptr;
+	unsigned int TileCount = 1;
 	VertexArray* VertexArray = nullptr;
 	bool IsLight = false;
 

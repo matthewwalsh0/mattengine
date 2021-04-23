@@ -23,6 +23,11 @@ public:
 public:
 	inline static Window& getInstance() { return *s_instance; }
 
+public:
+	float MouseX = 0.0f;
+	float MouseY = 0.0f;
+	float MouseMoved = false;
+
 private:
 	GLFWwindow* m_window;
 	std::string m_title;

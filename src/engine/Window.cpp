@@ -8,13 +8,14 @@
 namespace MattEngine {
 
 void windowResizeCallback(GLFWwindow* window, int width, int height) {
-	bool landscape = width >= height;
-	int viewportWidth = landscape ? height : width;
-	int viewportHeight = landscape ? height : width;
-	int widthMargin = landscape ? (width - height) / 2 : 0;
-	int heightMargin = landscape ? 0 : (height - width) / 2;
+	glViewport(0, 0, width, height);
+}
 
-	glViewport(widthMargin, heightMargin, viewportWidth, viewportHeight);
+void mouseCallback(GLFWwindow* window, double x, double y) {
+	Window& instance = Window::getInstance();
+	instance.MouseX = x;
+	instance.MouseY = y;
+	instance.MouseMoved = true;
 }
 
 Window::Window(
@@ -35,6 +36,8 @@ Window::Window(
 	MATTENGINE_ASSERT(m_window, "Could not create window.", NULL);
 
 	glfwMakeContextCurrent(m_window);
+	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPosCallback(m_window, mouseCallback);
 
 	unsigned int gladResult = gladLoadGL();
 	MATTENGINE_ASSERT(
