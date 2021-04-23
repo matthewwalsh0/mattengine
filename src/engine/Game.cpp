@@ -64,7 +64,7 @@ void Game::start() {
 }
 
 void Game::onUpdate(float deltaTime, Renderer& renderer, Window& window) {
-	glClearColor(0.5f, 0.5f, 0.5f, 1);
+	glClearColor(0.1f, 0.1f, 0.1f, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	onUpdate(m_scene, deltaTime, renderer, window);

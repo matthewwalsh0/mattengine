@@ -16,7 +16,7 @@ out vec2 v_TexturePosition;
 
 void main() {
 	v_Position = a_Position;
-	v_Normal = a_Normal;
+	v_Normal = mat3(transpose(inverse(u_Model))) * a_Normal;
 	v_Model = u_Model;
 	v_TexturePosition = a_TexturePosition;
 	v_FragmentPosition = vec3(u_Model * vec4(a_Position, 1.0));
@@ -43,13 +43,17 @@ in mat4 v_Model;
 in vec2 v_TexturePosition;
 
 void main() {
-	vec3 normal = vec3(v_Model * vec4(v_Normal, 1.0));
+	float ambientStrength = 0.1;
+	vec3 ambient = ambientStrength * vec3(1.0, 1.0, 1.0);
+
+	vec3 normal = normalize(v_Normal);
 	vec3 lightDirection = normalize(u_LightPosition - v_FragmentPosition);
-	float diffuseFactor =
-		u_IsLight ? 1.0 : max(dot(normal, lightDirection), 0.5);
-	vec3 diffuseColour = diffuseFactor * u_LightColour;
+	float diffuseStrength = max(dot(normal, lightDirection), 0.0);
+	vec3 diffuse = diffuseStrength * u_LightColour;
+
+	vec3 textureColour = vec3(texture(u_Texture, v_TexturePosition)) * u_Colour;
 	vec3 finalColour =
-		diffuseColour * vec3(texture(u_Texture, v_TexturePosition)) * u_Colour;
+		u_IsLight ? u_Colour : (ambient + diffuse) * textureColour;
 
 	color = vec4(finalColour, 1.0);
 }
