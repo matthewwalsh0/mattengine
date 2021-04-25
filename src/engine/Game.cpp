@@ -8,6 +8,7 @@
 #include "ModelComponent.h"
 #include "PhysicsComponent.h"
 #include "ScriptComponent.h"
+#include "SkyBoxComponent.h"
 #include "TextComponent.h"
 #include "TextureComponent.h"
 #include "Timer.h"
@@ -178,6 +179,16 @@ void Game::onUpdate(std::shared_ptr<Scene> scene, float deltaTime,
 			}
 
 			scriptComponent.Script->onUpdate(deltaTime, renderer, window);
+		});
+
+	scene->getRegistry().view<SkyBoxComponent>().each(
+		[&](SkyBoxComponent& skyBox) {
+			RenderRequest request;
+			request.CubeMap = &skyBox.CubeMap;
+			request.Shader = &m_shaderSkybox;
+			request.DepthMask = false;
+
+			renderer.draw(request);
 		});
 
 	scene->getRegistry()

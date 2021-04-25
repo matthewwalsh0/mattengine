@@ -40,10 +40,22 @@ void Renderer::draw(RenderRequest& request) {
 
 	glm::mat4 model = translate * rotate * scale;
 
+	Shader* shader = &m_shader;
+
+	if (request.Shader) {
+		shader = request.Shader;
+	}
+
+	shader->bind();
+
 	if (request.Texture) {
 		request.Texture->bind();
 	} else {
 		m_defaultTexture.bind();
+	}
+
+	if (request.CubeMap) {
+		request.CubeMap->bind();
 	}
 
 	if (request.VertexArray) {
@@ -52,17 +64,19 @@ void Renderer::draw(RenderRequest& request) {
 		m_cube->bind();
 	}
 
-	m_shader.setVec3("u_Colour", request.Colour);
-	m_shader.setMat4("u_View", m_camera.getView());
-	m_shader.setMat4("u_Model", model);
-	m_shader.setMat4("u_Projection", m_camera.getProjection());
-	m_shader.setBool("u_IsLight", request.IsLight);
-	m_shader.setInt("u_Texture", 0);
-	m_shader.setInt("u_TileCount", request.TileCount);
+	glDepthMask(request.DepthMask ? GL_TRUE : GL_FALSE);
+
+	shader->setVec3("u_Colour", request.Colour);
+	shader->setMat4("u_View", m_camera.getView());
+	shader->setMat4("u_Model", model);
+	shader->setMat4("u_Projection", m_camera.getProjection());
+	shader->setBool("u_IsLight", request.IsLight);
+	shader->setInt("u_Texture", 0);
+	shader->setInt("u_TileCount", request.TileCount);
 
 	if (request.IsLight) {
-		m_shader.setVec3("u_LightPosition", request.Position);
-		m_shader.setVec3("u_LightColour", request.Colour);
+		shader->setVec3("u_LightPosition", request.Position);
+		shader->setVec3("u_LightColour", request.Colour);
 	}
 
 	if (request.VertexArray && request.VertexArray->IndexCount > 0) {

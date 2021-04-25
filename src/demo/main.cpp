@@ -2,6 +2,7 @@
 #include "Game.h"
 #include "LightComponent.h"
 #include "ModelComponent.h"
+#include "SkyBoxComponent.h"
 #include "TagComponent.h"
 #include "TextureComponent.h"
 #include "TransformComponent.h"
@@ -62,6 +63,9 @@ public:
 			glm::vec3(0.0f, -3.0f, 0.0f), glm::vec3(100.0f, 0.01f, 100.0f));
 		floor.addComponent<ColourComponent>(glm::vec3(1.0f, 1.0f, 1.0f));
 		floor.addComponent<TextureComponent>(m_textureFloor, 50);
+
+		MattEngine::Entity skybox = createEntity();
+		skybox.addComponent<SkyBoxComponent>("assets/textures/skybox");
 	}
 
 	void onUpdate(float deltaTime) override {

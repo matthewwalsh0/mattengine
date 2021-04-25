@@ -1,6 +1,7 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
+#include "CubeMap.h"
 #include "Mesh.h"
 #include "PerspectiveCamera.h"
 #include "Shader.h"
@@ -19,13 +20,18 @@ public:
 	glm::vec3 Rotation = DEFAULT;
 	glm::vec3 Colour = DEFAULT_COLOUR;
 	Texture* Texture = nullptr;
+	CubeMap* CubeMap = nullptr;
+	Shader* Shader = nullptr;
 	unsigned int TileCount = 1;
 	VertexArray* VertexArray = nullptr;
 	bool IsLight = false;
+	bool DepthMask = true;
 
 public:
 	RenderRequest(glm::vec3& position, glm::vec3& size)
 		: Position(position), Size(size) {}
+
+	RenderRequest() {}
 };
 
 class Renderer {

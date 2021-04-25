@@ -6,6 +6,7 @@
 #include "PhysicsComponent.h"
 #include "Renderer.h"
 #include "Scene.h"
+#include "Shader.h"
 #include "TransformComponent.h"
 #include "Window.h"
 
@@ -45,6 +46,7 @@ private:
 	float m_fps;
 	std::string m_title;
 	std::shared_ptr<Scene> m_scene;
+	Shader m_shaderSkybox = Shader("assets/shaders/skybox.glsl");
 };
 } // namespace MattEngine
 
