@@ -19,6 +19,7 @@ public:
 	const std::string& getTitle() const;
 	void setTitle(const std::string& title);
 	bool isKeyDown(const int keycode) const;
+	GLFWwindow* getInternalWindow() { return m_window; }
 
 public:
 	inline static Window& getInstance() { return *s_instance; }

@@ -17,6 +17,10 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+
 namespace MattEngine {
 
 const float UPDATE_DELTA = 1.0f / 60;
@@ -30,6 +34,15 @@ void Game::start() {
 
 	MattEngine::Renderer renderer;
 	renderer.init();
+
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	(void)io;
+
+	ImGui::StyleColorsDark();
+	ImGui_ImplGlfw_InitForOpenGL(m_window.getInternalWindow(), true);
+	ImGui_ImplOpenGL3_Init("#version 330");
 
 	onInit();
 
@@ -55,7 +68,35 @@ void Game::start() {
 			m_window.setTitle(newTitleOld);
 		}
 
+		glBindFramebuffer(GL_FRAMEBUFFER, 1);
+
 		onUpdate(deltaTime, renderer, m_window);
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		glClearColor(0.0f, 0.0f, 0.0f, 1);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
+		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
+
+		ImGui::SetNextWindowSize(ImVec2(200, 200), ImGuiCond_FirstUseEver);
+
+		ImGui::Begin("Game", NULL, ImGuiWindowFlags_NoScrollbar);
+		ImVec2 gameSize = ImGui::GetWindowSize();
+		ImGui::Image(ImTextureID(2), ImVec2(gameSize.x, gameSize.y),
+			ImVec2(0, 1), ImVec2(1, 0));
+		ImGui::End();
+
+		ImGui::PopStyleVar();
+
+		ImGui::Render();
+
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 		m_window.update();
 
 		frameCount += 1;
