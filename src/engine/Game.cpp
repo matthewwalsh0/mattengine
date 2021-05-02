@@ -38,17 +38,20 @@ void Game::start() {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	(void)io;
 
 	ImGui::StyleColorsDark();
 	ImGui_ImplGlfw_InitForOpenGL(m_window.getInternalWindow(), true);
-	ImGui_ImplOpenGL3_Init("#version 330");
+	ImGui_ImplOpenGL3_Init("#version 330 core");
 
 	onInit();
 
 	float currentTime = glfwGetTime();
 	float fpsCurrentTime = glfwGetTime();
 	int frameCount = 0;
+
+	m_framebuffer = new MattEngine::Framebuffer(640, 480);
 
 	while (m_window.isOpen()) {
 		float newTime = glfwGetTime();
@@ -68,11 +71,11 @@ void Game::start() {
 			m_window.setTitle(newTitleOld);
 		}
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 1);
+		m_framebuffer->bind();
 
 		onUpdate(deltaTime, renderer, m_window);
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		m_framebuffer->unbind();
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -81,19 +84,23 @@ void Game::start() {
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
+		ImGui::DockSpaceOverViewport();
 		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
-		ImGui::SetNextWindowSize(ImVec2(200, 200), ImGuiCond_FirstUseEver);
-
 		ImGui::Begin("Game", NULL, ImGuiWindowFlags_NoScrollbar);
-		ImVec2 gameSize = ImGui::GetWindowSize();
-		ImGui::Image(ImTextureID(2), ImVec2(gameSize.x, gameSize.y),
-			ImVec2(0, 1), ImVec2(1, 0));
+		ImVec2 screenSize = ImGui::GetContentRegionAvail();
+		ImGui::Image(ImTextureID(m_framebuffer->getColourTextureId()),
+			ImVec2(screenSize.x, screenSize.y), ImVec2(0, 1), ImVec2(1, 0));
 		ImGui::End();
 
 		ImGui::PopStyleVar();
-
 		ImGui::Render();
+
+		if (ImGui::IsKeyPressed(GLFW_KEY_L, false)) {
+			m_gameMode = !m_gameMode;
+			m_window.setMouseEnabled(!m_gameMode);
+			renderer.getCamera().enableMouse(m_gameMode);
+		}
 
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

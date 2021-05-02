@@ -1,6 +1,8 @@
 #include "Window.h"
 
+#include "Game.h"
 #include "Log.h"
+#include "Renderer.h"
 
 #include <iostream>
 #include <string>
@@ -9,6 +11,8 @@ namespace MattEngine {
 
 void windowResizeCallback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
+	Renderer::getInstance().getCamera().setAspectRatio((float)width / height);
+	Game::getInstance().getFramebuffer()->resize(width, height);
 }
 
 void mouseCallback(GLFWwindow* window, double x, double y) {
@@ -36,7 +40,6 @@ Window::Window(
 	MATTENGINE_ASSERT(m_window, "Could not create window.", NULL);
 
 	glfwMakeContextCurrent(m_window);
-	glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetCursorPosCallback(m_window, mouseCallback);
 
 	unsigned int gladResult = gladLoadGL();
@@ -69,4 +72,10 @@ bool Window::isKeyDown(const int keycode) const {
 	auto state = glfwGetKey(m_window, keycode);
 	return state == GLFW_PRESS || state == GLFW_REPEAT;
 }
+
+void Window::setMouseEnabled(bool enabled) {
+	glfwSetInputMode(m_window, GLFW_CURSOR,
+		enabled ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
+}
+
 } // namespace MattEngine

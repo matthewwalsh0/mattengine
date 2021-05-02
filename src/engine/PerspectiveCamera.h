@@ -13,6 +13,19 @@ public:
 	const glm::vec3& getPosition() override { return m_position; }
 	void onUpdate(float deltaTime) override;
 
+	const void setAspectRatio(float aspectRatio) {
+		m_aspectRatio = aspectRatio;
+		invalidate();
+	};
+
+	void enableMouse(bool enabled) {
+		m_mouseEnabled = enabled;
+
+		if (m_mouseEnabled) {
+			m_mouseMoved = false;
+		}
+	}
+
 private:
 	void invalidate();
 
@@ -24,11 +37,13 @@ private:
 	glm::mat4 m_projection;
 	glm::mat4 m_view;
 	float m_angle = 45.0f;
+	float m_aspectRatio = 1.0f;
 	float m_speed = 10.0f;
 	float m_rotationSpeed = 90.0f;
 	float m_lastMouseX = 0.0f;
 	float m_lastMouseY = 0.0f;
 	bool m_mouseMoved = false;
+	bool m_mouseEnabled = false;
 };
 
 } // namespace MattEngine

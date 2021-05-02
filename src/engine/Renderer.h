@@ -39,6 +39,7 @@ public:
 	void init();
 	void onUpdate(float deltaTime);
 	void draw(RenderRequest& request);
+	PerspectiveCamera& getCamera() { return m_camera; }
 
 public:
 	inline static Renderer& getInstance() { return *s_instance; }

@@ -6,10 +6,7 @@
 
 using namespace MattEngine;
 
-PerspectiveCamera::PerspectiveCamera() {
-	m_projection = glm::perspective(glm::radians(m_angle), 1.0f, 0.1f, 100.0f);
-	invalidate();
-}
+PerspectiveCamera::PerspectiveCamera() { invalidate(); }
 
 void PerspectiveCamera::onUpdate(float deltaTime) {
 	if (Window::getInstance().isKeyDown(GLFW_KEY_W)) {
@@ -43,6 +40,9 @@ void PerspectiveCamera::onUpdate(float deltaTime) {
 			glm::normalize(glm::cross(m_forward, m_up)) * deltaTime * m_speed;
 		invalidate();
 	}
+
+	if (!m_mouseEnabled)
+		return;
 
 	Window& window = Window::getInstance();
 	if (!window.MouseMoved)
@@ -89,4 +89,6 @@ void PerspectiveCamera::invalidate() {
 
 	m_forward = glm::normalize(direction);
 	m_view = glm::lookAt(m_position, m_position + m_forward, m_up);
+	m_projection =
+		glm::perspective(glm::radians(m_angle), m_aspectRatio, 0.1f, 100.0f);
 }

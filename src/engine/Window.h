@@ -19,6 +19,7 @@ public:
 	const std::string& getTitle() const;
 	void setTitle(const std::string& title);
 	bool isKeyDown(const int keycode) const;
+	void setMouseEnabled(bool enabled);
 	GLFWwindow* getInternalWindow() { return m_window; }
 
 public:

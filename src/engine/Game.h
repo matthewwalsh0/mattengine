@@ -3,6 +3,7 @@
 
 #include "ColliderComponent.h"
 #include "Entity.h"
+#include "Framebuffer.h"
 #include "PhysicsComponent.h"
 #include "Renderer.h"
 #include "Scene.h"
@@ -32,6 +33,8 @@ public:
 		m_scene->onInit();
 	}
 
+	Framebuffer* getFramebuffer() { return m_framebuffer; }
+
 public:
 	inline static Game& getInstance() { return *s_instance; }
 
@@ -47,6 +50,8 @@ private:
 	std::string m_title;
 	std::shared_ptr<Scene> m_scene;
 	Shader m_shaderSkybox = Shader("assets/shaders/skybox.glsl");
+	bool m_gameMode = false;
+	Framebuffer* m_framebuffer = nullptr;
 };
 } // namespace MattEngine
 
