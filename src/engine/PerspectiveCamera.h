@@ -10,6 +10,7 @@ public:
 	PerspectiveCamera();
 	const glm::mat4& getProjection() override { return m_projection; };
 	const glm::mat4& getView() override { return m_view; };
+	const glm::vec3& getPosition() override { return m_position; }
 	void onUpdate(float deltaTime) override;
 
 private:

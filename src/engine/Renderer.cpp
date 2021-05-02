@@ -68,6 +68,7 @@ void Renderer::draw(RenderRequest& request) {
 
 	shader->setVec3("u_Colour", request.Colour);
 	shader->setMat4("u_View", m_camera.getView());
+	shader->setVec3("u_viewPosition", m_camera.getPosition());
 	shader->setMat4("u_Model", model);
 	shader->setMat4("u_Projection", m_camera.getProjection());
 	shader->setBool("u_IsLight", request.IsLight);

@@ -36,6 +36,7 @@ uniform vec3 u_LightColour = vec3(1.0, 1.0, 1.0);
 uniform bool u_IsLight = false;
 uniform int u_TileCount = 1;
 uniform sampler2D u_Texture;
+uniform vec3 u_viewPosition;
 
 in vec3 v_Position;
 in vec3 v_Normal;
@@ -52,10 +53,18 @@ void main() {
 	float diffuseStrength = max(dot(normal, lightDirection), 0.0);
 	vec3 diffuse = diffuseStrength * u_LightColour;
 
+	float specularIntensity = 0.5;
+	float shininess = 32;
+	vec3 viewDirection = normalize(u_viewPosition - v_FragmentPosition);
+	vec3 reflectDirection = reflect(-lightDirection, normal);
+	float specularStrength =
+		pow(max(dot(viewDirection, reflectDirection), 0.0), shininess);
+	vec3 specular = specularIntensity * specularStrength * u_LightColour;
+
 	vec4 textureColour = texture(u_Texture, v_TexturePosition * u_TileCount);
 	vec3 texturedColour = vec3(textureColour) * u_Colour;
 	vec3 finalColour =
-		u_IsLight ? u_Colour : (ambient + diffuse) * texturedColour;
+		u_IsLight ? u_Colour : (ambient + diffuse + specular) * texturedColour;
 
 	color = vec4(finalColour, textureColour.a);
 }

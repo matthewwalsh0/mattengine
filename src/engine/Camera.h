@@ -9,6 +9,7 @@ class Camera {
 public:
 	virtual const glm::mat4& getProjection() = 0;
 	virtual const glm::mat4& getView() = 0;
+	virtual const glm::vec3& getPosition() = 0;
 	virtual void onUpdate(float deltaTime){};
 };
 
