@@ -65,10 +65,6 @@ void Game::start() {
 
 			frameCount = 0;
 			fpsCurrentTime = newTime;
-
-			char newTitleOld[100];
-			sprintf(newTitleOld, "%s (%.2f FPS)", m_title.c_str(), m_fps);
-			m_window.setTitle(newTitleOld);
 		}
 
 		m_framebuffer->bind();
@@ -91,9 +87,22 @@ void Game::start() {
 		ImVec2 screenSize = ImGui::GetContentRegionAvail();
 		ImGui::Image(ImTextureID(m_framebuffer->getColourTextureId()),
 			ImVec2(screenSize.x, screenSize.y), ImVec2(0, 1), ImVec2(1, 0));
+
+		if (screenSize.x != m_viewportSize.x ||
+			screenSize.y != m_viewportSize.y) {
+			m_viewportSize = screenSize;
+			glViewport(0, 0, screenSize.x, screenSize.y);
+			renderer.getCamera().setAspectRatio(screenSize.x / screenSize.y);
+			m_framebuffer->resize(screenSize.x, screenSize.y);
+		}
+
+		ImGui::End();
+		ImGui::PopStyleVar();
+
+		ImGui::Begin("Performance");
+		ImGui::Text("FPS: %.2f", m_fps);
 		ImGui::End();
 
-		ImGui::PopStyleVar();
 		ImGui::Render();
 
 		if (ImGui::IsKeyPressed(GLFW_KEY_L, false)) {

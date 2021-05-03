@@ -13,6 +13,8 @@
 
 #include <string>
 
+#include "imgui.h"
+
 namespace MattEngine {
 
 class Game {
@@ -52,6 +54,7 @@ private:
 	Shader m_shaderSkybox = Shader("assets/shaders/skybox.glsl");
 	bool m_gameMode = false;
 	Framebuffer* m_framebuffer = nullptr;
+	ImVec2 m_viewportSize{0, 0};
 };
 } // namespace MattEngine
 

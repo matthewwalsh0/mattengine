@@ -9,11 +9,7 @@
 
 namespace MattEngine {
 
-void windowResizeCallback(GLFWwindow* window, int width, int height) {
-	glViewport(0, 0, width, height);
-	Renderer::getInstance().getCamera().setAspectRatio((float)width / height);
-	Game::getInstance().getFramebuffer()->resize(width, height);
-}
+void windowResizeCallback(GLFWwindow* window, int width, int height) {}
 
 void mouseCallback(GLFWwindow* window, double x, double y) {
 	Window& instance = Window::getInstance();
