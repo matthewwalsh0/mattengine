@@ -4,6 +4,8 @@
 #include "ColliderComponent.h"
 #include "Entity.h"
 #include "Framebuffer.h"
+#include "ImGuiLayer.h"
+#include "Layer.h"
 #include "PhysicsComponent.h"
 #include "Renderer.h"
 #include "Scene.h"
@@ -12,8 +14,7 @@
 #include "Window.h"
 
 #include <string>
-
-#include "imgui.h"
+#include <vector>
 
 namespace MattEngine {
 
@@ -36,6 +37,8 @@ public:
 	}
 
 	Framebuffer* getFramebuffer() { return m_framebuffer; }
+	std::shared_ptr<Scene> getScene() { return m_scene; }
+	float getFps() { return m_fps; }
 
 public:
 	inline static Game& getInstance() { return *s_instance; }
@@ -52,9 +55,8 @@ private:
 	std::string m_title;
 	std::shared_ptr<Scene> m_scene;
 	Shader m_shaderSkybox = Shader("assets/shaders/skybox.glsl");
-	bool m_gameMode = false;
 	Framebuffer* m_framebuffer = nullptr;
-	ImVec2 m_viewportSize{0, 0};
+	ImGuiLayer m_imgui;
 };
 } // namespace MattEngine
 

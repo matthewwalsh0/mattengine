@@ -103,7 +103,7 @@ public:
 };
 
 int main(int argc, char** argv) {
-	MattEngine::Window window(640, 480, "MattEngine Demo");
+	MattEngine::Window window(1280, 720, "MattEngine Demo");
 	Demo(window).start();
 	return 0;
 }

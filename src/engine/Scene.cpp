@@ -43,4 +43,15 @@ std::vector<Entity> Scene::getEntities(const std::string& tag) {
 
 	return matches;
 }
+
+std::vector<Entity> Scene::getAllEntities() {
+	std::vector<Entity> entities;
+
+	m_registry.view<TagComponent>().each(
+		[&](const auto entity, TagComponent& currentTag) {
+			entities.push_back(Entity(entity, &m_registry));
+		});
+
+	return entities;
+}
 } // namespace MattEngine

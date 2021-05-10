@@ -46,6 +46,8 @@ public:
 	}
 
 	operator bool() const { return m_registry != nullptr; }
+
+	bool operator==(const Entity& c2) { return m_entity == c2.m_entity; }
 };
 } // namespace MattEngine
 
