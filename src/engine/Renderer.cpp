@@ -18,8 +18,6 @@ void Renderer::init() {
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	m_shader.bind();
 }
 
 void Renderer::onUpdate(float deltaTime) { m_camera.onUpdate(deltaTime); }
@@ -41,19 +39,16 @@ void Renderer::draw(RenderRequest& request) {
 
 	glm::mat4 model = translate * rotate * scale;
 
-	Shader* shader = &m_shader;
-
-	if (request.Shader) {
-		shader = request.Shader;
-	}
-
-	shader->bind();
+	Shader* shader = m_shader;
 
 	if (request.Texture) {
 		request.Texture->bind();
 	} else {
 		m_defaultTexture.bind();
 	}
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, request.ShadowMapId);
 
 	if (request.CubeMap) {
 		request.CubeMap->bind();
@@ -74,6 +69,7 @@ void Renderer::draw(RenderRequest& request) {
 	shader->setMat4("u_Projection", m_camera.getProjection());
 	shader->setBool("u_IsLight", request.IsLight);
 	shader->setInt("u_Texture", 0);
+	shader->setInt("u_ShadowMap", 1);
 	shader->setInt("u_TileCount", request.TileCount);
 
 	if (request.IsLight) {

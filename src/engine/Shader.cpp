@@ -21,11 +21,11 @@ static std::string readFile(const std::string& path) {
 }
 
 static std::string readVertexSource(const std::string& data) {
-	return data.substr(0, data.find("---"));
+	return data.substr(0, data.find("#separator"));
 }
 
 static std::string readFragmentSource(const std::string& data) {
-	return data.substr(data.find("---") + 3);
+	return data.substr(data.find("#separator") + 10);
 }
 
 static GLuint compileSingle(const std::string& source, int shaderType) {

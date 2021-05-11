@@ -20,6 +20,7 @@ public:
 	glm::vec3 Rotation = DEFAULT;
 	glm::vec3 Colour = DEFAULT_COLOUR;
 	Texture* Texture = nullptr;
+	int ShadowMapId = -1;
 	CubeMap* CubeMap = nullptr;
 	Shader* Shader = nullptr;
 	unsigned int TileCount = 1;
@@ -40,13 +41,14 @@ public:
 	void onUpdate(float deltaTime);
 	void draw(RenderRequest& request);
 	PerspectiveCamera& getCamera() { return m_camera; }
+	void setShader(Shader& shader) { m_shader = &shader; }
 
 public:
 	inline static Renderer& getInstance() { return *s_instance; }
 
 private:
 	std::shared_ptr<VertexArray> m_cube;
-	Shader m_shader = Shader("assets/shaders/core.glsl");
+	Shader* m_shader = nullptr;
 	PerspectiveCamera m_camera = PerspectiveCamera();
 	unsigned int m_defaultTextureData[1] = {0xFFFFFF};
 	Texture m_defaultTexture = Texture(1, 1, 3, m_defaultTextureData);

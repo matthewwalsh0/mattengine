@@ -6,6 +6,7 @@
 #include "LightComponent.h"
 #include "Mesh.h"
 #include "ModelComponent.h"
+#include "OrthoCameraComponent.h"
 #include "PhysicsComponent.h"
 #include "ScriptComponent.h"
 #include "SkyBoxComponent.h"
@@ -39,6 +40,7 @@ void Game::start() {
 	int frameCount = 0;
 
 	m_framebuffer = new MattEngine::Framebuffer(640, 480);
+	m_depthMap = new Framebuffer(1024, 1024, true, true);
 
 	while (m_window.isOpen()) {
 		float newTime = glfwGetTime();
@@ -54,9 +56,44 @@ void Game::start() {
 			fpsCurrentTime = newTime;
 		}
 
+		glViewport(0, 0, 1024, 1024);
+
+		m_depthMap->bind();
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		Entity light = m_scene->getEntity("Light");
+
+		glm::vec3& lightPosition =
+			light.getComponent<TransformComponent>().Position;
+		OrthoCameraComponent& cameraComponent =
+			light.getComponent<OrthoCameraComponent>();
+		OrthoCamera shadowCamera = OrthoCamera(cameraComponent.Bounds,
+			cameraComponent.Planes, lightPosition, {0.0f, 0.0f, 0.0f});
+
+		glm::mat4 lightProjectionView = shadowCamera.getProjectionView();
+
+		m_shaderShadow.bind();
+		m_shaderShadow.setMat4("u_LightSpaceMatrix", lightProjectionView);
+
+		renderer.setShader(m_shaderShadow);
+
+		glCullFace(GL_FRONT);
+
+		renderPass(renderer, *m_scene, m_shaderShadow, false);
+
 		m_framebuffer->bind();
 
+		glCullFace(GL_BACK);
+
+		glViewport(0, 0, m_framebuffer->getWidth(), m_framebuffer->getHeight());
+
 		onUpdate(deltaTime, renderer, m_window);
+
+		m_shader.bind();
+		m_shader.setMat4("u_LightSpaceMatrix", lightProjectionView);
+
+		renderer.setShader(m_shader);
+		renderPass(renderer, *m_scene, m_shader);
 
 		m_framebuffer->unbind();
 
@@ -189,7 +226,22 @@ void Game::onUpdate(std::shared_ptr<Scene> scene, float deltaTime,
 			scriptComponent.Script->onUpdate(deltaTime, renderer, window);
 		});
 
-	scene->getRegistry().view<SkyBoxComponent>().each(
+	scene->getRegistry().view<const DeleteComponent>().each(
+		[&](const auto entity, const DeleteComponent& text) {
+			scene->getRegistry().destroy(entity);
+		});
+
+	scene->onUpdate(deltaTime);
+	renderer.onUpdate(deltaTime);
+}
+
+void Game::renderPass(
+	Renderer& renderer, Scene& scene, Shader& shader, bool includeLights) {
+
+	m_shaderSkybox.bind();
+	renderer.setShader(m_shaderSkybox);
+
+	scene.getRegistry().view<SkyBoxComponent>().each(
 		[&](SkyBoxComponent& skyBox) {
 			RenderRequest request;
 			request.CubeMap = &skyBox.CubeMap;
@@ -199,19 +251,24 @@ void Game::onUpdate(std::shared_ptr<Scene> scene, float deltaTime,
 			renderer.draw(request);
 		});
 
-	scene->getRegistry()
-		.view<TransformComponent, ColourComponent, LightComponent>()
-		.each([&](TransformComponent& transform, ColourComponent& colour,
-				  LightComponent& light) {
-			RenderRequest request(transform.Position, transform.Size);
-			request.Colour = colour.Colour;
-			request.Rotation = transform.Rotation;
-			request.IsLight = true;
+	shader.bind();
+	renderer.setShader(shader);
 
-			renderer.draw(request);
-		});
+	if (includeLights) {
+		scene.getRegistry()
+			.view<TransformComponent, ColourComponent, LightComponent>()
+			.each([&](TransformComponent& transform, ColourComponent& colour,
+					  LightComponent& light) {
+				RenderRequest request(transform.Position, transform.Size);
+				request.Colour = colour.Colour;
+				request.Rotation = transform.Rotation;
+				request.IsLight = true;
 
-	scene->getRegistry()
+				renderer.draw(request);
+			});
+	}
+
+	scene.getRegistry()
 		.view<TransformComponent, ColourComponent, TextureComponent>()
 		.each([&](auto rawEntity, TransformComponent& transform,
 				  ColourComponent& colour, TextureComponent& texture) {
@@ -224,13 +281,14 @@ void Game::onUpdate(std::shared_ptr<Scene> scene, float deltaTime,
 			renderer.draw(request);
 		});
 
-	scene->getRegistry()
+	scene.getRegistry()
 		.view<TransformComponent, ColourComponent, ModelComponent>()
 		.each([&](auto rawEntity, TransformComponent& transform,
 				  ColourComponent& colour, ModelComponent& model) {
 			RenderRequest request(transform.Position, transform.Size);
 			request.Colour = colour.Colour;
 			request.Rotation = transform.Rotation;
+			request.ShadowMapId = m_depthMap->getDepthTextureId();
 
 			for (unsigned int i = 0; i < model.Model.Meshes.size(); i++) {
 				Mesh& mesh = model.Model.Meshes[i];
@@ -240,13 +298,6 @@ void Game::onUpdate(std::shared_ptr<Scene> scene, float deltaTime,
 				renderer.draw(request);
 			}
 		});
-
-	scene->getRegistry().view<const DeleteComponent>().each(
-		[&](const auto entity, const DeleteComponent& text) {
-			scene->getRegistry().destroy(entity);
-		});
-
-	scene->onUpdate(deltaTime);
-	renderer.onUpdate(deltaTime);
 }
+
 } // namespace MattEngine

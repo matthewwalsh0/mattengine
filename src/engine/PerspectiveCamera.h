@@ -13,7 +13,7 @@ public:
 	const glm::vec3& getPosition() override { return m_position; }
 	void onUpdate(float deltaTime) override;
 
-	const void setAspectRatio(float aspectRatio) {
+	const void setAspectRatio(float aspectRatio) override {
 		m_aspectRatio = aspectRatio;
 		invalidate();
 	};

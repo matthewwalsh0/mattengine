@@ -6,6 +6,7 @@
 #include "Framebuffer.h"
 #include "ImGuiLayer.h"
 #include "Layer.h"
+#include "OrthoCamera.h"
 #include "PhysicsComponent.h"
 #include "Renderer.h"
 #include "Scene.h"
@@ -37,8 +38,16 @@ public:
 	}
 
 	Framebuffer* getFramebuffer() { return m_framebuffer; }
+	Framebuffer* getDepthMap() { return m_depthMap; }
 	std::shared_ptr<Scene> getScene() { return m_scene; }
 	float getFps() { return m_fps; }
+
+private:
+	void onUpdate(std::shared_ptr<Scene> scene, float deltaTime,
+		Renderer& renderer, Window& window);
+
+	void renderPass(Renderer& renderer, Scene& scene, Shader& shader,
+		bool includeLights = true);
 
 public:
 	inline static Game& getInstance() { return *s_instance; }
@@ -47,15 +56,15 @@ private:
 	inline static Game* s_instance;
 
 private:
-	void onUpdate(std::shared_ptr<Scene> scene, float deltaTime,
-		Renderer& renderer, Window& window);
-
 	Window& m_window;
 	float m_fps;
 	std::string m_title;
 	std::shared_ptr<Scene> m_scene;
+	Shader m_shader = Shader("assets/shaders/core.glsl");
 	Shader m_shaderSkybox = Shader("assets/shaders/skybox.glsl");
+	Shader m_shaderShadow = Shader("assets/shaders/shadow.glsl");
 	Framebuffer* m_framebuffer = nullptr;
+	Framebuffer* m_depthMap = nullptr;
 	ImGuiLayer m_imgui;
 };
 } // namespace MattEngine

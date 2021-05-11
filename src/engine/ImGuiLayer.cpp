@@ -2,6 +2,7 @@
 
 #include "ColourComponent.h"
 #include "Game.h"
+#include "OrthoCameraComponent.h"
 #include "TransformComponent.h"
 #include "Window.h"
 
@@ -62,6 +63,19 @@ static void ComponentEditor(Entity& selectedEntity) {
 		}
 	}
 
+	if (selectedEntity.hasComponent<OrthoCameraComponent>()) {
+		OrthoCameraComponent& orthoCamera =
+			selectedEntity.getComponent<OrthoCameraComponent>();
+
+		if (ImGui::CollapsingHeader(
+				"Ortho Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
+			ImGui::SliderFloat4("Bounds", glm::value_ptr(orthoCamera.Bounds),
+				-100.0f, 100.0f, "%.3f", ImGuiSliderFlags_None);
+			ImGui::SliderFloat2("Planes", glm::value_ptr(orthoCamera.Planes),
+				-100.0f, 100.0f, "%.3f", ImGuiSliderFlags_None);
+		}
+	}
+
 	ImGui::End();
 }
 
@@ -116,6 +130,13 @@ void ImGuiLayer::onUpdate() {
 	Renderer& renderer = Renderer::getInstance();
 
 	ImGuiCustom::GameViewport(*framebuffer, m_viewportSize, renderer);
+
+	ImGui::Begin("Depth Map", NULL, ImGuiWindowFlags_NoScrollbar);
+	ImVec2 screenSize = ImGui::GetContentRegionAvail();
+	ImGui::Image(
+		ImTextureID((void*)(uintptr_t)game.getDepthMap()->getColourTextureId()),
+		ImVec2(screenSize.x, screenSize.y), ImVec2(0, 1), ImVec2(1, 0));
+	ImGui::End();
 
 	ImGui::PopStyleVar();
 	ImGui::Begin("Performance");

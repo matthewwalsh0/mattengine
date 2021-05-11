@@ -2,6 +2,7 @@
 #include "Game.h"
 #include "LightComponent.h"
 #include "ModelComponent.h"
+#include "OrthoCameraComponent.h"
 #include "SkyBoxComponent.h"
 #include "TagComponent.h"
 #include "TextureComponent.h"
@@ -56,6 +57,8 @@ public:
 			glm::vec3(-2.0f, 1.5f, 1.0f), glm::vec3(0.5f, 0.5f, 0.5f));
 		light.addComponent<ColourComponent>(glm::vec3(1.0f, 1.0f, 1.0f));
 		light.addComponent<LightComponent>();
+		light.addComponent<OrthoCameraComponent>(
+			glm::vec4(-5.0f, 5.0f, -5.0f, 5.0f), glm::vec2(0.1f, 50.0f));
 
 		MattEngine::Entity floor = createEntity();
 		floor.addComponent<TagComponent>("Floor");

@@ -12,11 +12,11 @@ void main() {
 	gl_Position = u_Projection * mat4(mat3(u_View)) * vec4(a_Position, 1.0);
 }
 
----
+#separator
 
 #version 330 core
 
-  out vec4 f_Colour;
+out vec4 f_Colour;
 
 in vec3 v_TexturePosition;
 
