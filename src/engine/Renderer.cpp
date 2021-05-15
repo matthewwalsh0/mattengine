@@ -9,6 +9,25 @@
 
 namespace MattEngine {
 
+namespace Utils {
+
+static glm::mat4 calculateModel(const glm::vec3& position,
+	const glm::vec3& size, const glm::vec3& rotation) {
+	glm::mat4 scale = glm::scale(glm::mat4(1.0f), size);
+	glm::mat4 translate = glm::translate(glm::mat4(1.0f), position);
+
+	glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), glm::radians(rotation.x),
+						   glm::vec3(1.0f, 0.0f, 0.0f)) *
+					   glm::rotate(glm::mat4(1.0f), glm::radians(rotation.y),
+						   glm::vec3(0.0f, 1.0f, 0.0f)) *
+					   glm::rotate(glm::mat4(1.0f), glm::radians(rotation.z),
+						   glm::vec3(0.0f, 0.0f, 1.0f));
+
+	return translate * rotate * scale;
+}
+
+} // namespace Utils
+
 void Renderer::init() {
 	s_instance = this;
 
@@ -20,68 +39,116 @@ void Renderer::init() {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-void Renderer::onUpdate(float deltaTime) { m_camera.onUpdate(deltaTime); }
+void Renderer::beginFrame(Camera& camera, Light& light) {
+	m_shadowCamera.setPosition(light.getPosition());
+	glm::mat4 lightSpaceMatrix = m_shadowCamera.getProjectionView();
 
-void Renderer::draw(RenderRequest& request) {
-	glm::mat4 scale = glm::scale(glm::mat4(1.0f),
-		glm::vec3(request.Size.x, request.Size.y, request.Size.z));
+	m_shader.bind();
+	m_shader.setMat4("u_View", camera.getView());
+	m_shader.setMat4("u_Projection", camera.getProjection());
+	m_shader.setVec3("u_ViewPosition", camera.getPosition());
+	m_shader.setVec3("u_Colour", glm::vec3(1.0f, 1.0f, 1.0f));
+	m_shader.setInt("u_Texture", 0);
+	m_shader.setInt("u_ShadowMap", 1);
+	m_shader.setInt("u_TileCount", 1);
+	m_shader.setMat4("u_LightSpaceMatrix", lightSpaceMatrix);
+	m_shader.setVec3("u_LightPosition", light.getPosition());
+	m_shader.setVec3("u_LightColour", light.getColour());
 
-	glm::mat4 translate = glm::translate(glm::mat4(1.0f),
-		glm::vec3(request.Position.x, request.Position.y, request.Position.z));
+	m_shaderShadow.bind();
+	m_shaderShadow.setMat4("u_LightSpaceMatrix", lightSpaceMatrix);
 
-	glm::mat4 rotate =
-		glm::rotate(glm::mat4(1.0f), glm::radians(request.Rotation.x),
-			glm::vec3(1.0f, 0.0f, 0.0f)) *
-		glm::rotate(glm::mat4(1.0f), glm::radians(request.Rotation.y),
-			glm::vec3(0.0f, 1.0f, 0.0f)) *
-		glm::rotate(glm::mat4(1.0f), glm::radians(request.Rotation.z),
-			glm::vec3(0.0f, 0.0f, 1.0f));
+	m_shaderSkybox.bind();
+	m_shaderSkybox.setMat4("u_View", camera.getView());
+	m_shaderSkybox.setMat4("u_Projection", camera.getProjection());
+	m_shaderSkybox.setInt("u_Texture", 0);
+}
 
-	glm::mat4 model = translate * rotate * scale;
+void Renderer::clear(const glm::vec3& colour) {
+	glClearColor(colour.x, colour.y, colour.z, 1);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
 
-	Shader* shader = m_shader;
+void Renderer::setViewport(const glm::vec2& start, const glm::vec2& size) {
+	glViewport(start.x, start.y, size.x, size.y);
+}
 
-	if (request.Texture) {
-		request.Texture->bind();
+void Renderer::drawCube(DrawCubeRequest& request) {
+	glm::mat4 model =
+		Utils::calculateModel(request.Position, request.Size, request.Rotation);
+
+	m_cube->bind();
+
+	if (request.DepthOnly) {
+		m_shaderShadow.bind();
+		m_shaderShadow.setMat4("u_Model", model);
 	} else {
-		m_defaultTexture.bind();
+		m_shader.bind();
+		m_shader.setMat4("u_Model", model);
+		m_shader.setVec3("u_Colour", request.Colour);
+		m_shader.setInt("u_TileCount", request.TileCount);
+
+		if (request.Texture) {
+			request.Texture->bind();
+		} else {
+			m_defaultTexture.bind();
+		}
 	}
 
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, request.ShadowMapId);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
 
-	if (request.CubeMap) {
-		request.CubeMap->bind();
-	}
+	m_shader.setInt("u_TileCount", 1);
+}
 
-	if (request.VertexArray) {
-		request.VertexArray->bind();
+void Renderer::drawModel(DrawModelRequest& request) {
+	glm::mat4 model =
+		Utils::calculateModel(request.Position, request.Size, request.Rotation);
+
+	if (request.DepthOnly) {
+		m_shaderShadow.bind();
+		m_shaderShadow.setMat4("u_Model", model);
 	} else {
-		m_cube->bind();
+		m_shader.bind();
+		m_shader.setMat4("u_Model", model);
+		m_shader.setVec3("u_Colour", request.Colour);
 	}
 
-	glDepthMask(request.DepthMask ? GL_TRUE : GL_FALSE);
+	for (unsigned int i = 0; i < request.Model.Meshes.size(); i++) {
+		Mesh& mesh = request.Model.Meshes[i];
+		mesh.VertexArray.bind();
+		mesh.Texture->bind();
 
-	shader->setVec3("u_Colour", request.Colour);
-	shader->setMat4("u_View", m_camera.getView());
-	shader->setVec3("u_viewPosition", m_camera.getPosition());
-	shader->setMat4("u_Model", model);
-	shader->setMat4("u_Projection", m_camera.getProjection());
-	shader->setBool("u_IsLight", request.IsLight);
-	shader->setInt("u_Texture", 0);
-	shader->setInt("u_ShadowMap", 1);
-	shader->setInt("u_TileCount", request.TileCount);
-
-	if (request.IsLight) {
-		shader->setVec3("u_LightPosition", request.Position);
-		shader->setVec3("u_LightColour", request.Colour);
-	}
-
-	if (request.VertexArray && request.VertexArray->IndexCount > 0) {
 		glDrawElements(
-			GL_TRIANGLES, request.VertexArray->IndexCount, GL_UNSIGNED_INT, 0);
-	} else {
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+			GL_TRIANGLES, mesh.VertexArray.IndexCount, GL_UNSIGNED_INT, 0);
 	}
 }
+
+void Renderer::drawLight(DrawLightRequest& request) {
+	glm::mat4 model =
+		Utils::calculateModel(request.Position, request.Size, request.Rotation);
+
+	m_cube->bind();
+	m_defaultTexture.bind();
+
+	m_shader.bind();
+	m_shader.bind();
+	m_shader.setMat4("u_Model", model);
+	m_shader.setVec3("u_Colour", request.Colour);
+	m_shader.setBool("u_IsLight", true);
+
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+
+	m_shader.setBool("u_IsLight", false);
+}
+
+void Renderer::drawSkybox(CubeMap& cubeMap) {
+	m_shaderSkybox.bind();
+	m_cube->bind();
+	cubeMap.bind();
+
+	glDepthMask(GL_FALSE);
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glDepthMask(GL_TRUE);
+}
+
 } // namespace MattEngine

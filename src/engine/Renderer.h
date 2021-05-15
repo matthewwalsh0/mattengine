@@ -2,60 +2,81 @@
 #define RENDERER_H
 
 #include "CubeMap.h"
+#include "Light.h"
 #include "Mesh.h"
-#include "PerspectiveCamera.h"
+#include "Model.h"
+#include "OrthoCamera.h"
 #include "Shader.h"
 #include "Texture.h"
 
 namespace MattEngine {
 
-class RenderRequest {
-private:
-	inline static glm::vec3 DEFAULT_COLOUR = glm::vec3(1.0f, 1.0f, 1.0f);
-	inline static glm::vec3 DEFAULT = glm::vec3(0.0f, 0.0f, 0.0f);
-
+class DrawCubeRequest {
 public:
-	glm::vec3 Position;
-	glm::vec3 Size;
-	glm::vec3 Rotation = DEFAULT;
-	glm::vec3 Colour = DEFAULT_COLOUR;
+	glm::vec3 Position = {0.0f, 0.0f, 0.0f};
+	glm::vec3 Size = {1.0f, 1.0f, 1.0f};
+	glm::vec3 Rotation = {0.0f, 0.0f, 0.0f};
+	glm::vec3 Colour = {1.0f, 1.0f, 1.0f};
 	Texture* Texture = nullptr;
-	int ShadowMapId = -1;
-	CubeMap* CubeMap = nullptr;
-	Shader* Shader = nullptr;
 	unsigned int TileCount = 1;
-	VertexArray* VertexArray = nullptr;
-	bool IsLight = false;
-	bool DepthMask = true;
+	bool DepthOnly = false;
 
 public:
-	RenderRequest(glm::vec3& position, glm::vec3& size)
-		: Position(position), Size(size) {}
+	DrawCubeRequest() {}
+};
 
-	RenderRequest() {}
+class DrawModelRequest {
+public:
+	Model& Model;
+	glm::vec3 Position = {0.0f, 0.0f, 0.0f};
+	glm::vec3 Size = {1.0f, 1.0f, 1.0f};
+	glm::vec3 Rotation = {0.0f, 0.0f, 0.0f};
+	glm::vec3 Colour = {1.0f, 1.0f, 1.0f};
+	bool DepthOnly = false;
+
+public:
+	DrawModelRequest(class Model& model) : Model(model) {}
+};
+
+class DrawLightRequest {
+public:
+	glm::vec3 Position = {0.0f, 0.0f, 0.0f};
+	glm::vec3 Size = {1.0f, 1.0f, 1.0f};
+	glm::vec3 Rotation = {0.0f, 0.0f, 0.0f};
+	glm::vec3 Colour = {1.0f, 1.0f, 1.0f};
+
+public:
+	DrawLightRequest() {}
 };
 
 class Renderer {
 public:
 	void init();
-	void onUpdate(float deltaTime);
-	void draw(RenderRequest& request);
-	PerspectiveCamera& getCamera() { return m_camera; }
-	void setShader(Shader& shader) { m_shader = &shader; }
+	void beginFrame(Camera& camera, Light& light);
+	void drawCube(DrawCubeRequest& request);
+	void drawModel(DrawModelRequest& request);
+	void drawLight(DrawLightRequest& request);
+	void drawSkybox(CubeMap& cubeMap);
+	void clear(const glm::vec3& colour = {0.0f, 0.0f, 0.0f});
+	void setViewport(const glm::vec2& start, const glm::vec2& size);
 
 public:
 	inline static Renderer& getInstance() { return *s_instance; }
 
 private:
+	Shader m_shader = Shader("assets/shaders/core.glsl");
+	Shader m_shaderSkybox = Shader("assets/shaders/skybox.glsl");
+	Shader m_shaderShadow = Shader("assets/shaders/shadow.glsl");
 	std::shared_ptr<VertexArray> m_cube;
-	Shader* m_shader = nullptr;
-	PerspectiveCamera m_camera = PerspectiveCamera();
+	OrthoCamera m_shadowCamera = OrthoCamera({-5.0f, 5.0f, -5.0f, 5.0f},
+		{0.1f, 50.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f});
 	unsigned int m_defaultTextureData[1] = {0xFFFFFF};
 	Texture m_defaultTexture = Texture(1, 1, 3, m_defaultTextureData);
 
 private:
 	inline static Renderer* s_instance;
 };
+
 } // namespace MattEngine
 
 #endif

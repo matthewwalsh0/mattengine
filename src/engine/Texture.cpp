@@ -65,8 +65,10 @@ Texture::Texture(
 	m_textureId = Utils::generateTexture(width, height, channels, data);
 }
 
-void Texture::bind() const {
-	glActiveTexture(GL_TEXTURE0);
+Texture::Texture(unsigned int textureId) : m_textureId(textureId) {}
+
+void Texture::bind(unsigned int slot) const {
+	glActiveTexture(GL_TEXTURE0 + slot);
 	glBindTexture(GL_TEXTURE_2D, m_textureId);
 }
 } // namespace MattEngine

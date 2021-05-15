@@ -7,6 +7,7 @@
 #include "ImGuiLayer.h"
 #include "Layer.h"
 #include "OrthoCamera.h"
+#include "PerspectiveCamera.h"
 #include "PhysicsComponent.h"
 #include "Renderer.h"
 #include "Scene.h"
@@ -26,10 +27,6 @@ public:
 public:
 	Game(Window& window);
 	void start();
-	void onUpdate(float deltaTime, Renderer& renderer, Window& window);
-	const float inline getFPS() const { return m_fps; }
-	std::shared_ptr<Scene> simulateUpdate(
-		std::shared_ptr<Scene> scene, float deltaTime);
 
 	template <typename T, typename... Args> void loadScene(Args&&... args) {
 		m_scene.reset((Scene*)new T(std::forward<Args>(args)...));
@@ -37,17 +34,16 @@ public:
 		m_scene->onInit();
 	}
 
+	const float inline getFPS() const { return m_fps; }
 	Framebuffer* getFramebuffer() { return m_framebuffer; }
 	Framebuffer* getDepthMap() { return m_depthMap; }
 	std::shared_ptr<Scene> getScene() { return m_scene; }
-	float getFps() { return m_fps; }
+	Camera& getCamera() { return m_camera; }
 
 private:
-	void onUpdate(std::shared_ptr<Scene> scene, float deltaTime,
-		Renderer& renderer, Window& window);
-
-	void renderPass(Renderer& renderer, Scene& scene, Shader& shader,
-		bool includeLights = true);
+	void onUpdate(float deltaTime);
+	void shadowPass();
+	void renderPass();
 
 public:
 	inline static Game& getInstance() { return *s_instance; }
@@ -60,12 +56,10 @@ private:
 	float m_fps;
 	std::string m_title;
 	std::shared_ptr<Scene> m_scene;
-	Shader m_shader = Shader("assets/shaders/core.glsl");
-	Shader m_shaderSkybox = Shader("assets/shaders/skybox.glsl");
-	Shader m_shaderShadow = Shader("assets/shaders/shadow.glsl");
 	Framebuffer* m_framebuffer = nullptr;
 	Framebuffer* m_depthMap = nullptr;
 	ImGuiLayer m_imgui;
+	PerspectiveCamera m_camera = PerspectiveCamera();
 };
 } // namespace MattEngine
 

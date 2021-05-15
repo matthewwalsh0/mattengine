@@ -10,9 +10,10 @@ public:
 	Texture(const std::string& path);
 	Texture(const Texture& texture);
 	Texture(const int width, const int height, const int channels, void* data);
+	Texture(unsigned int textureId);
 	inline const int getWidth() { return m_width; }
 	inline const int getHeight() { return m_height; }
-	void bind() const;
+	void bind(unsigned int slot = 0) const;
 
 private:
 	std::string m_path;

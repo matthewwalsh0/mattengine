@@ -23,11 +23,12 @@ class Entity {
 private:
 	entt::registry* m_registry;
 	entt::entity m_entity;
+	bool m_empty = true;
 
 public:
 	Entity() {}
 	Entity(entt::entity entityId, entt::registry* registry)
-		: m_entity(entityId), m_registry(registry) {}
+		: m_entity(entityId), m_registry(registry), m_empty(false) {}
 
 	template <typename T> T& getComponent() {
 		return m_registry->get<T>(m_entity);
@@ -45,7 +46,10 @@ public:
 		return m_registry->has<T>(m_entity);
 	}
 
-	operator bool() const { return m_registry != nullptr; }
+	operator bool() const {
+		entt::entity empty;
+		return m_registry != nullptr && !m_empty;
+	}
 
 	bool operator==(const Entity& c2) { return m_entity == c2.m_entity; }
 };

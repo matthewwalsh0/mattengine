@@ -41,7 +41,7 @@ uniform bool u_IsLight = false;
 uniform int u_TileCount = 1;
 uniform sampler2D u_Texture;
 uniform sampler2D u_ShadowMap;
-uniform vec3 u_viewPosition;
+uniform vec3 u_ViewPosition;
 
 in vec3 v_Position;
 in vec3 v_Normal;
@@ -61,7 +61,7 @@ void main() {
 
 	float specularIntensity = 0.5;
 	float shininess = 32;
-	vec3 viewDirection = normalize(u_viewPosition - v_FragmentPosition);
+	vec3 viewDirection = normalize(u_ViewPosition - v_FragmentPosition);
 	vec3 reflectDirection = reflect(-lightDirection, normal);
 	float specularStrength =
 		pow(max(dot(viewDirection, reflectDirection), 0.0), shininess);

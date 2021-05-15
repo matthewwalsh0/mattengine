@@ -5,7 +5,7 @@
 
 namespace MattEngine {
 
-class PerspectiveCamera : Camera {
+class PerspectiveCamera : public Camera {
 public:
 	PerspectiveCamera();
 	const glm::mat4& getProjection() override { return m_projection; };

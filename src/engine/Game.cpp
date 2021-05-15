@@ -56,49 +56,12 @@ void Game::start() {
 			fpsCurrentTime = newTime;
 		}
 
-		glViewport(0, 0, 1024, 1024);
+		onUpdate(deltaTime);
 
-		m_depthMap->bind();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		shadowPass();
+		renderPass();
 
-		Entity light = m_scene->getEntity("Light");
-
-		glm::vec3& lightPosition =
-			light.getComponent<TransformComponent>().Position;
-		OrthoCameraComponent& cameraComponent =
-			light.getComponent<OrthoCameraComponent>();
-		OrthoCamera shadowCamera = OrthoCamera(cameraComponent.Bounds,
-			cameraComponent.Planes, lightPosition, {0.0f, 0.0f, 0.0f});
-
-		glm::mat4 lightProjectionView = shadowCamera.getProjectionView();
-
-		m_shaderShadow.bind();
-		m_shaderShadow.setMat4("u_LightSpaceMatrix", lightProjectionView);
-
-		renderer.setShader(m_shaderShadow);
-
-		glCullFace(GL_FRONT);
-
-		renderPass(renderer, *m_scene, m_shaderShadow, false);
-
-		m_framebuffer->bind();
-
-		glCullFace(GL_BACK);
-
-		glViewport(0, 0, m_framebuffer->getWidth(), m_framebuffer->getHeight());
-
-		onUpdate(deltaTime, renderer, m_window);
-
-		m_shader.bind();
-		m_shader.setMat4("u_LightSpaceMatrix", lightProjectionView);
-
-		renderer.setShader(m_shader);
-		renderPass(renderer, *m_scene, m_shader);
-
-		m_framebuffer->unbind();
-
-		glClearColor(0.0f, 0.0f, 0.0f, 1);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		renderer.clear();
 
 		m_imgui.onUpdate();
 		m_window.update();
@@ -109,69 +72,18 @@ void Game::start() {
 	glfwTerminate();
 }
 
-void Game::onUpdate(float deltaTime, Renderer& renderer, Window& window) {
-	glClearColor(0.1f, 0.1f, 0.1f, 1);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+void Game::onUpdate(float deltaTime) {
+	Renderer& renderer = Renderer::getInstance();
+	Scene& scene = *m_scene;
+	Window& window = Window::getInstance();
 
-	onUpdate(m_scene, deltaTime, renderer, window);
-}
-
-std::shared_ptr<Scene> Game::simulateUpdate(
-	std::shared_ptr<Scene> scene, float deltaTime) {
-	std::shared_ptr<Scene> simulationScene;
-
-	if (!scene) {
-		simulationScene = std::make_shared<Scene>();
-
-		m_scene->getRegistry().each([&](auto entity) {
-			Entity current = m_scene->createEntity(entity);
-			Entity target = simulationScene->createEntity();
-
-			if (current.hasComponent<TransformComponent>()) {
-				target.addComponent<TransformComponent>(
-					current.getComponent<TransformComponent>());
-			}
-
-			if (current.hasComponent<TagComponent>()) {
-				target.addComponent<TagComponent>(
-					current.getComponent<TagComponent>());
-			}
-
-			if (current.hasComponent<PhysicsComponent>()) {
-				target.addComponent<PhysicsComponent>(
-					current.getComponent<PhysicsComponent>());
-			}
-
-			if (current.hasComponent<ColliderComponent>()) {
-				target.addComponent<ColliderComponent>(
-					current.getComponent<ColliderComponent>());
-			}
-		});
-	} else {
-		simulationScene = scene;
-	}
-
-	Scene::setSimulation(true);
-	Scene::setCurrent(simulationScene);
-
-	onUpdate(simulationScene, deltaTime, Renderer::getInstance(),
-		Window::getInstance());
-
-	Scene::setCurrent(m_scene);
-	Scene::setSimulation(false);
-
-	return simulationScene;
-}
-
-void Game::onUpdate(std::shared_ptr<Scene> scene, float deltaTime,
-	Renderer& renderer, Window& window) {
-	scene->onBeforeUpdate(renderer);
+	scene.onBeforeUpdate(renderer);
 
 	for (auto& timer : Timer::Timers) {
 		timer->onUpdate(deltaTime);
 	}
 
-	scene->getRegistry().view<PhysicsComponent, TransformComponent>().each(
+	scene.getRegistry().view<PhysicsComponent, TransformComponent>().each(
 		[&](const auto entity, PhysicsComponent& physics,
 			TransformComponent& transform) {
 			physics.OldPosition = transform.Position;
@@ -180,16 +92,16 @@ void Game::onUpdate(std::shared_ptr<Scene> scene, float deltaTime,
 		});
 
 	auto staticEntities =
-		scene->getRegistry().view<ColliderComponent, TransformComponent>();
+		scene.getRegistry().view<ColliderComponent, TransformComponent>();
 
-	scene->getRegistry()
+	scene.getRegistry()
 		.view<ColliderComponent, TransformComponent, PhysicsComponent>()
 		.each([&](const auto movingEntity, ColliderComponent& movingCollider,
 				  TransformComponent& movingTransform,
 				  PhysicsComponent& movingPhysics) {
 			for (auto [staticEntity, staticCollider, staticTransform] :
 				staticEntities.each()) {
-				if (scene->createEntity(staticEntity)
+				if (scene.createEntity(staticEntity)
 						.template hasComponent<PhysicsComponent>())
 					continue;
 
@@ -201,8 +113,8 @@ void Game::onUpdate(std::shared_ptr<Scene> scene, float deltaTime,
 				if (collisionType == CollisionType::NONE)
 					continue;
 
-				Entity staticEntityFull = scene->createEntity(staticEntity);
-				Entity movingEntityFull = scene->createEntity(movingEntity);
+				Entity staticEntityFull = scene.createEntity(staticEntity);
+				Entity movingEntityFull = scene.createEntity(movingEntity);
 
 				if (staticCollider.Handler) {
 					staticCollider.Handler->onCollision(
@@ -216,88 +128,134 @@ void Game::onUpdate(std::shared_ptr<Scene> scene, float deltaTime,
 			}
 		});
 
-	scene->getRegistry().view<ScriptComponent>().each(
+	scene.getRegistry().view<ScriptComponent>().each(
 		[&](const auto entity, ScriptComponent& scriptComponent) {
 			if (!scriptComponent.Script->Entity) {
-				scriptComponent.Script->Entity = scene->createEntity(entity);
+				scriptComponent.Script->Entity = scene.createEntity(entity);
 				scriptComponent.Script->onCreate();
 			}
 
 			scriptComponent.Script->onUpdate(deltaTime, renderer, window);
 		});
 
-	scene->getRegistry().view<const DeleteComponent>().each(
+	scene.getRegistry().view<const DeleteComponent>().each(
 		[&](const auto entity, const DeleteComponent& text) {
-			scene->getRegistry().destroy(entity);
+			scene.getRegistry().destroy(entity);
 		});
 
-	scene->onUpdate(deltaTime);
-	renderer.onUpdate(deltaTime);
+	m_camera.onUpdate(deltaTime);
+	scene.onUpdate(deltaTime);
 }
 
-void Game::renderPass(
-	Renderer& renderer, Scene& scene, Shader& shader, bool includeLights) {
+void Game::shadowPass() {
+	Renderer& renderer = Renderer::getInstance();
+	Scene& scene = *m_scene;
 
-	m_shaderSkybox.bind();
-	renderer.setShader(m_shaderSkybox);
+	m_depthMap->bind();
 
-	scene.getRegistry().view<SkyBoxComponent>().each(
-		[&](SkyBoxComponent& skyBox) {
-			RenderRequest request;
-			request.CubeMap = &skyBox.CubeMap;
-			request.Shader = &m_shaderSkybox;
-			request.DepthMask = false;
+	renderer.setViewport({0.0f, 0.0f}, {1024.0f, 1024.0f});
+	renderer.clear({1.0f, 1.0f, 1.0f});
 
-			renderer.draw(request);
-		});
+	Entity light = m_scene->getEntity("Light");
 
-	shader.bind();
-	renderer.setShader(shader);
+	glm::vec3& lightPosition =
+		light.getComponent<TransformComponent>().Position;
+	glm::vec3& lightColour = light.getComponent<ColourComponent>().Colour;
 
-	if (includeLights) {
-		scene.getRegistry()
-			.view<TransformComponent, ColourComponent, LightComponent>()
-			.each([&](TransformComponent& transform, ColourComponent& colour,
-					  LightComponent& light) {
-				RenderRequest request(transform.Position, transform.Size);
-				request.Colour = colour.Colour;
-				request.Rotation = transform.Rotation;
-				request.IsLight = true;
+	Light mainLight(lightPosition, lightColour);
 
-				renderer.draw(request);
-			});
-	}
+	renderer.beginFrame(m_camera, mainLight);
+
+	glCullFace(GL_FRONT);
 
 	scene.getRegistry()
 		.view<TransformComponent, ColourComponent, TextureComponent>()
 		.each([&](auto rawEntity, TransformComponent& transform,
 				  ColourComponent& colour, TextureComponent& texture) {
-			RenderRequest request(transform.Position, transform.Size);
-			request.Colour = colour.Colour;
+			DrawCubeRequest request;
+			request.Position = transform.Position;
+			request.Size = transform.Size;
 			request.Rotation = transform.Rotation;
+			request.DepthOnly = true;
+
+			renderer.drawCube(request);
+		});
+
+	scene.getRegistry().view<TransformComponent, ModelComponent>().each(
+		[&](auto rawEntity, TransformComponent& transform,
+			ModelComponent& model) {
+			DrawModelRequest request(model.Model);
+			request.Position = transform.Position;
+			request.Size = transform.Size;
+			request.Rotation = transform.Rotation;
+			request.DepthOnly = true;
+
+			renderer.drawModel(request);
+		});
+
+	glCullFace(GL_BACK);
+
+	m_depthMap->unbind();
+}
+
+void Game::renderPass() {
+	Renderer& renderer = Renderer::getInstance();
+	Scene& scene = *m_scene;
+
+	m_framebuffer->bind();
+
+	renderer.setViewport(
+		{0.0f, 0.0f}, {m_framebuffer->getWidth(), m_framebuffer->getHeight()});
+
+	renderer.clear();
+
+	Texture(m_depthMap->getDepthTextureId()).bind(1);
+
+	scene.getRegistry().view<SkyBoxComponent>().each(
+		[&](SkyBoxComponent& skyBox) { renderer.drawSkybox(skyBox.CubeMap); });
+
+	scene.getRegistry()
+		.view<TransformComponent, ColourComponent, LightComponent>()
+		.each([&](TransformComponent& transform, ColourComponent& colour,
+				  LightComponent& light) {
+			DrawLightRequest request;
+			request.Position = transform.Position;
+			request.Size = transform.Size;
+			request.Rotation = transform.Rotation;
+			request.Colour = colour.Colour;
+
+			renderer.drawLight(request);
+		});
+
+	scene.getRegistry()
+		.view<TransformComponent, ColourComponent, TextureComponent>()
+		.each([&](auto rawEntity, TransformComponent& transform,
+				  ColourComponent& colour, TextureComponent& texture) {
+			DrawCubeRequest request;
+			request.Position = transform.Position;
+			request.Size = transform.Size;
+			request.Rotation = transform.Rotation;
+			request.Colour = colour.Colour;
 			request.Texture = &texture.Texture;
 			request.TileCount = texture.TileCount;
 
-			renderer.draw(request);
+			renderer.drawCube(request);
 		});
 
 	scene.getRegistry()
 		.view<TransformComponent, ColourComponent, ModelComponent>()
 		.each([&](auto rawEntity, TransformComponent& transform,
 				  ColourComponent& colour, ModelComponent& model) {
-			RenderRequest request(transform.Position, transform.Size);
-			request.Colour = colour.Colour;
+			DrawModelRequest request(model.Model);
+			request.Position = transform.Position;
+			request.Size = transform.Size;
 			request.Rotation = transform.Rotation;
-			request.ShadowMapId = m_depthMap->getDepthTextureId();
+			request.Colour = colour.Colour;
 
-			for (unsigned int i = 0; i < model.Model.Meshes.size(); i++) {
-				Mesh& mesh = model.Model.Meshes[i];
-				request.VertexArray = &mesh.VertexArray;
-				request.Texture = mesh.Texture;
-
-				renderer.draw(request);
-			}
+			renderer.drawModel(request);
 		});
+
+	m_framebuffer->unbind();
 }
 
 } // namespace MattEngine

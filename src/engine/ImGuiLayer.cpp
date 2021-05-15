@@ -79,8 +79,8 @@ static void ComponentEditor(Entity& selectedEntity) {
 	ImGui::End();
 }
 
-static void GameViewport(
-	Framebuffer& framebuffer, ImVec2& viewportSize, Renderer& renderer) {
+static void GameViewport(Framebuffer& framebuffer, ImVec2& viewportSize,
+	Renderer& renderer, Game& game) {
 	ImGui::Begin("Game", NULL, ImGuiWindowFlags_NoScrollbar);
 	ImVec2 screenSize = ImGui::GetContentRegionAvail();
 
@@ -90,8 +90,8 @@ static void GameViewport(
 
 	if (screenSize.x != viewportSize.x || screenSize.y != viewportSize.y) {
 		viewportSize = screenSize;
-		glViewport(0, 0, screenSize.x, screenSize.y);
-		renderer.getCamera().setAspectRatio(screenSize.x / screenSize.y);
+		renderer.setViewport({0.0f, 0.0f}, {screenSize.x, screenSize.y});
+		game.getCamera().setAspectRatio(screenSize.x / screenSize.y);
 		framebuffer.resize(screenSize.x, screenSize.y);
 	}
 
@@ -129,7 +129,7 @@ void ImGuiLayer::onUpdate() {
 	Framebuffer* framebuffer = game.getFramebuffer();
 	Renderer& renderer = Renderer::getInstance();
 
-	ImGuiCustom::GameViewport(*framebuffer, m_viewportSize, renderer);
+	ImGuiCustom::GameViewport(*framebuffer, m_viewportSize, renderer, game);
 
 	ImGui::Begin("Depth Map", NULL, ImGuiWindowFlags_NoScrollbar);
 	ImVec2 screenSize = ImGui::GetContentRegionAvail();
@@ -140,7 +140,7 @@ void ImGuiLayer::onUpdate() {
 
 	ImGui::PopStyleVar();
 	ImGui::Begin("Performance");
-	ImGui::Text("FPS: %.2f", game.getFps());
+	ImGui::Text("FPS: %.2f", game.getFPS());
 	ImGui::End();
 
 	ImGui::Render();
@@ -148,7 +148,7 @@ void ImGuiLayer::onUpdate() {
 	if (ImGui::IsKeyPressed(GLFW_KEY_L, false)) {
 		m_gameMode = !m_gameMode;
 		Window::getInstance().setMouseEnabled(!m_gameMode);
-		renderer.getCamera().enableMouse(m_gameMode);
+		((PerspectiveCamera&)game.getCamera()).enableMouse(m_gameMode);
 	}
 
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
