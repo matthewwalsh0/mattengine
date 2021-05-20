@@ -6,18 +6,11 @@
 struct TransformComponent {
 	glm::vec3 Position;
 	glm::vec3 Size;
-	glm::vec3 Rotation = {1.0f, 1.0f, 1.0f};
+	float RotationAngle = 0.0f;
+	glm::vec3 RotationAxis = {1.0f, 1.0f, 1.0f};
 
 	TransformComponent(const glm::vec3& position, const glm::vec3& size)
 		: Position(position), Size(size) {}
-
-	TransformComponent(const glm::vec3& position, const glm::vec3& size,
-		const glm::vec3& rotation)
-		: Position(position), Size(size), Rotation(rotation) {}
-
-	TransformComponent(const TransformComponent& other)
-		: Position(other.Position), Size(other.Size), Rotation(other.Rotation) {
-	}
 };
 
 #endif

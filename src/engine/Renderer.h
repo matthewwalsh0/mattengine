@@ -15,7 +15,8 @@ class DrawCubeRequest {
 public:
 	glm::vec3 Position = {0.0f, 0.0f, 0.0f};
 	glm::vec3 Size = {1.0f, 1.0f, 1.0f};
-	glm::vec3 Rotation = {0.0f, 0.0f, 0.0f};
+	float RotationAngle = 0.0f;
+	glm::vec3 RotationAxis = {1.0f, 1.0f, 1.0f};
 	glm::vec3 Colour = {1.0f, 1.0f, 1.0f};
 	Texture* Texture = nullptr;
 	unsigned int TileCount = 1;
@@ -31,6 +32,8 @@ public:
 	glm::vec3 Position = {0.0f, 0.0f, 0.0f};
 	glm::vec3 Size = {1.0f, 1.0f, 1.0f};
 	glm::vec3 Rotation = {0.0f, 0.0f, 0.0f};
+	float RotationAngle = 0.0f;
+	glm::vec3 RotationAxis = {1.0f, 1.0f, 1.0f};
 	glm::vec3 Colour = {1.0f, 1.0f, 1.0f};
 	bool DepthOnly = false;
 
@@ -43,6 +46,8 @@ public:
 	glm::vec3 Position = {0.0f, 0.0f, 0.0f};
 	glm::vec3 Size = {1.0f, 1.0f, 1.0f};
 	glm::vec3 Rotation = {0.0f, 0.0f, 0.0f};
+	float RotationAngle = 0.0f;
+	glm::vec3 RotationAxis = {1.0f, 1.0f, 1.0f};
 	glm::vec3 Colour = {1.0f, 1.0f, 1.0f};
 
 public:

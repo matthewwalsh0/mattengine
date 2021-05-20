@@ -1,12 +1,15 @@
 #ifndef FRAMEBUFFER_H
 #define FRAMEBUFFER_H
 
+#include <glm/glm.hpp>
+
 namespace MattEngine {
 
 class Framebuffer {
 public:
 	Framebuffer(const unsigned int width, const unsigned int height,
-		bool hasColourAttachment = true, bool hasDepthAttachment = true);
+		bool hasColourAttachment = true, bool hasDepthAttachment = true,
+		unsigned int samples = 0);
 	void resize(const unsigned int width, const unsigned int height);
 	void bind() const;
 	void unbind() const;
@@ -14,6 +17,7 @@ public:
 	unsigned int getDepthTextureId() { return m_depthTextureId; }
 	unsigned int getWidth() { return m_width; }
 	unsigned int getHeight() { return m_height; }
+	void copy(Framebuffer& target);
 
 private:
 	void invalidate();
@@ -25,6 +29,7 @@ private:
 	unsigned int m_framebufferId;
 	unsigned int m_colourTextureId;
 	unsigned int m_depthTextureId;
+	unsigned int m_samples;
 };
 
 } // namespace MattEngine

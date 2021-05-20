@@ -50,8 +50,6 @@ static void ComponentEditor(Entity& selectedEntity) {
 				-10.0f, 10.0f, "%.3f", ImGuiSliderFlags_None);
 			ImGui::SliderFloat3("Size", glm::value_ptr(transform.Size), -10.0f,
 				10.0f, "%.3f", ImGuiSliderFlags_None);
-			ImGui::SliderFloat3("Rotation", glm::value_ptr(transform.Rotation),
-				0.0f, 360.0f, "%.3f", ImGuiSliderFlags_None);
 		}
 	}
 
@@ -79,20 +77,22 @@ static void ComponentEditor(Entity& selectedEntity) {
 	ImGui::End();
 }
 
-static void GameViewport(Framebuffer& framebuffer, ImVec2& viewportSize,
-	Renderer& renderer, Game& game) {
+static void GameViewport(Game& game, Renderer& renderer, ImVec2& viewportSize) {
 	ImGui::Begin("Game", NULL, ImGuiWindowFlags_NoScrollbar);
 	ImVec2 screenSize = ImGui::GetContentRegionAvail();
+	Framebuffer* framebuffer = game.getFramebuffer();
+	Framebuffer* framebufferMultisampled = game.getFramebufferMultisampled();
 
 	ImGui::Image(
-		ImTextureID((void*)(uintptr_t)framebuffer.getColourTextureId()),
+		ImTextureID((void*)(uintptr_t)framebuffer->getColourTextureId()),
 		ImVec2(screenSize.x, screenSize.y), ImVec2(0, 1), ImVec2(1, 0));
 
 	if (screenSize.x != viewportSize.x || screenSize.y != viewportSize.y) {
 		viewportSize = screenSize;
 		renderer.setViewport({0.0f, 0.0f}, {screenSize.x, screenSize.y});
 		game.getCamera().setAspectRatio(screenSize.x / screenSize.y);
-		framebuffer.resize(screenSize.x, screenSize.y);
+		framebuffer->resize(screenSize.x, screenSize.y);
+		framebufferMultisampled->resize(screenSize.x, screenSize.y);
 	}
 
 	ImGui::End();
@@ -126,10 +126,9 @@ void ImGuiLayer::onUpdate() {
 	ImGuiCustom::EntityList(entities, m_selectedEntity);
 	ImGuiCustom::ComponentEditor(m_selectedEntity);
 
-	Framebuffer* framebuffer = game.getFramebuffer();
 	Renderer& renderer = Renderer::getInstance();
 
-	ImGuiCustom::GameViewport(*framebuffer, m_viewportSize, renderer, game);
+	ImGuiCustom::GameViewport(game, renderer, m_viewportSize);
 
 	ImGui::Begin("Depth Map", NULL, ImGuiWindowFlags_NoScrollbar);
 	ImVec2 screenSize = ImGui::GetContentRegionAvail();

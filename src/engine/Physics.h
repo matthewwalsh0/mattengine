@@ -1,22 +1,35 @@
 #ifndef PHYSICS_H
 #define PHYSICS_H
 
-#include "Texture.h"
+#include "Entity.h"
 
-#include "entt.hpp"
+#include "PxPhysicsAPI.h"
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+
+using namespace physx;
 
 namespace MattEngine {
 
-enum CollisionType { HORIZONTAL, VERTICAL, NONE };
-
 class Physics {
+
 public:
-	static CollisionType isColliding(const glm::vec2& firstPosition,
-		const glm::vec2& firstSize, const glm::vec2& secondPosition,
-		const glm::vec2& secondSize, const glm::vec2& oldFirstPosition);
+	void init();
+	void simulate(float deltaTime);
+	PxRigidDynamic* createRigidDynamic(
+		const glm::vec3& position, const glm::vec3& size);
+	void setLinearVelocity(Entity& entity, const glm::vec3& velocity);
+
+private:
+	PxDefaultAllocator m_allocator;
+	PxDefaultErrorCallback m_errorCallback;
+	PxFoundation* m_foundation = NULL;
+	PxPhysics* m_physics = NULL;
+	PxDefaultCpuDispatcher* m_dispatcher = NULL;
+	PxScene* m_scene = NULL;
+	PxMaterial* m_material = NULL;
+	PxPvd* m_pvd = NULL;
 };
+
 } // namespace MattEngine
 
 #endif

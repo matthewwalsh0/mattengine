@@ -12,16 +12,10 @@ namespace MattEngine {
 namespace Utils {
 
 static glm::mat4 calculateModel(const glm::vec3& position,
-	const glm::vec3& size, const glm::vec3& rotation) {
+	const glm::vec3& size, const glm::vec3& rotation, const float& angle) {
 	glm::mat4 scale = glm::scale(glm::mat4(1.0f), size);
 	glm::mat4 translate = glm::translate(glm::mat4(1.0f), position);
-
-	glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), glm::radians(rotation.x),
-						   glm::vec3(1.0f, 0.0f, 0.0f)) *
-					   glm::rotate(glm::mat4(1.0f), glm::radians(rotation.y),
-						   glm::vec3(0.0f, 1.0f, 0.0f)) *
-					   glm::rotate(glm::mat4(1.0f), glm::radians(rotation.z),
-						   glm::vec3(0.0f, 0.0f, 1.0f));
+	glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), angle, rotation);
 
 	return translate * rotate * scale;
 }
@@ -36,6 +30,7 @@ void Renderer::init() {
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
+	glEnable(GL_MULTISAMPLE);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
@@ -74,8 +69,8 @@ void Renderer::setViewport(const glm::vec2& start, const glm::vec2& size) {
 }
 
 void Renderer::drawCube(DrawCubeRequest& request) {
-	glm::mat4 model =
-		Utils::calculateModel(request.Position, request.Size, request.Rotation);
+	glm::mat4 model = Utils::calculateModel(request.Position, request.Size,
+		request.RotationAxis, request.RotationAngle);
 
 	m_cube->bind();
 
@@ -101,8 +96,8 @@ void Renderer::drawCube(DrawCubeRequest& request) {
 }
 
 void Renderer::drawModel(DrawModelRequest& request) {
-	glm::mat4 model =
-		Utils::calculateModel(request.Position, request.Size, request.Rotation);
+	glm::mat4 model = Utils::calculateModel(request.Position, request.Size,
+		request.RotationAxis, request.RotationAngle);
 
 	if (request.DepthOnly) {
 		m_shaderShadow.bind();
@@ -124,8 +119,8 @@ void Renderer::drawModel(DrawModelRequest& request) {
 }
 
 void Renderer::drawLight(DrawLightRequest& request) {
-	glm::mat4 model =
-		Utils::calculateModel(request.Position, request.Size, request.Rotation);
+	glm::mat4 model = Utils::calculateModel(request.Position, request.Size,
+		request.RotationAxis, request.RotationAngle);
 
 	m_cube->bind();
 	m_defaultTexture.bind();

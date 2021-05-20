@@ -8,6 +8,13 @@ using namespace MattEngine;
 
 PerspectiveCamera::PerspectiveCamera() { invalidate(); }
 
+const glm::quat PerspectiveCamera::getRotationQuaternion() {
+	glm::quat cameraRotation(glm::vec3(glm::radians(m_rotation.x),
+		glm::radians(-m_rotation.y - 90.0f), glm::radians(m_rotation.z)));
+
+	return cameraRotation;
+}
+
 void PerspectiveCamera::onUpdate(float deltaTime) {
 	if (Window::getInstance().isKeyDown(GLFW_KEY_W)) {
 		m_position += m_forward * deltaTime * m_speed;
@@ -90,5 +97,5 @@ void PerspectiveCamera::invalidate() {
 	m_forward = glm::normalize(direction);
 	m_view = glm::lookAt(m_position, m_position + m_forward, m_up);
 	m_projection =
-		glm::perspective(glm::radians(m_angle), m_aspectRatio, 0.1f, 100.0f);
+		glm::perspective(glm::radians(m_angle), m_aspectRatio, 0.1f, 1000.0f);
 }

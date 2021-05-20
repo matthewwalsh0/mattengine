@@ -1,13 +1,12 @@
 #include "Game.h"
 
-#include "ColliderComponent.h"
 #include "ColourComponent.h"
 #include "DeleteComponent.h"
 #include "LightComponent.h"
 #include "Mesh.h"
 #include "ModelComponent.h"
 #include "OrthoCameraComponent.h"
-#include "PhysicsComponent.h"
+#include "RigidBodyComponent.h"
 #include "ScriptComponent.h"
 #include "SkyBoxComponent.h"
 #include "TextComponent.h"
@@ -30,15 +29,18 @@ void Game::start() {
 	srand(time(NULL));
 
 	MattEngine::Renderer renderer;
-	renderer.init();
 
+	renderer.init();
 	m_imgui.onInit();
+	m_physics.init();
 	onInit();
 
 	float currentTime = glfwGetTime();
 	float fpsCurrentTime = glfwGetTime();
 	int frameCount = 0;
 
+	m_framebufferMultisampled =
+		new MattEngine::Framebuffer(640, 480, true, true, 4);
 	m_framebuffer = new MattEngine::Framebuffer(640, 480);
 	m_depthMap = new Framebuffer(1024, 1024, true, true);
 
@@ -83,49 +85,33 @@ void Game::onUpdate(float deltaTime) {
 		timer->onUpdate(deltaTime);
 	}
 
-	scene.getRegistry().view<PhysicsComponent, TransformComponent>().each(
-		[&](const auto entity, PhysicsComponent& physics,
+	m_physics.simulate(deltaTime);
+
+	scene.getRegistry().view<RigidBodyComponent, TransformComponent>().each(
+		[&](const auto entity, RigidBodyComponent& rigidDynamic,
 			TransformComponent& transform) {
-			physics.OldPosition = transform.Position;
-			transform.Position.x += physics.Velocity.x * deltaTime;
-			transform.Position.y += physics.Velocity.y * deltaTime;
-		});
-
-	auto staticEntities =
-		scene.getRegistry().view<ColliderComponent, TransformComponent>();
-
-	scene.getRegistry()
-		.view<ColliderComponent, TransformComponent, PhysicsComponent>()
-		.each([&](const auto movingEntity, ColliderComponent& movingCollider,
-				  TransformComponent& movingTransform,
-				  PhysicsComponent& movingPhysics) {
-			for (auto [staticEntity, staticCollider, staticTransform] :
-				staticEntities.each()) {
-				if (scene.createEntity(staticEntity)
-						.template hasComponent<PhysicsComponent>())
-					continue;
-
-				CollisionType collisionType =
-					Physics::isColliding(movingTransform.Position,
-						movingTransform.Size, staticTransform.Position,
-						staticTransform.Size, movingPhysics.OldPosition);
-
-				if (collisionType == CollisionType::NONE)
-					continue;
-
-				Entity staticEntityFull = scene.createEntity(staticEntity);
-				Entity movingEntityFull = scene.createEntity(movingEntity);
-
-				if (staticCollider.Handler) {
-					staticCollider.Handler->onCollision(
-						collisionType, staticEntityFull, movingEntityFull);
-				}
-
-				if (movingCollider.Handler) {
-					movingCollider.Handler->onCollision(
-						collisionType, staticEntityFull, movingEntityFull);
-				}
+			if (!rigidDynamic.Body) {
+				rigidDynamic.Body = m_physics.createRigidDynamic(
+					transform.Position, transform.Size);
 			}
+
+			if (rigidDynamic.Velocity != glm::vec3(0.0f, 0.0f, 0.0f)) {
+				Entity wrappedEntity = scene.createEntity(entity);
+				m_physics.setLinearVelocity(
+					wrappedEntity, rigidDynamic.Velocity);
+				rigidDynamic.Velocity = {0.0f, 0.0f, 0.0f};
+			}
+
+			PxTransform physicsTransform = rigidDynamic.Body->getGlobalPose();
+			PxReal angle;
+			PxVec3 axis;
+			physicsTransform.q.toRadiansAndUnitAxis(angle, axis);
+
+			transform.Position.x = physicsTransform.p.x;
+			transform.Position.y = physicsTransform.p.y;
+			transform.Position.z = physicsTransform.p.z;
+			transform.RotationAngle = angle;
+			transform.RotationAxis = {axis.x, axis.y, axis.z};
 		});
 
 	scene.getRegistry().view<ScriptComponent>().each(
@@ -140,6 +126,13 @@ void Game::onUpdate(float deltaTime) {
 
 	scene.getRegistry().view<const DeleteComponent>().each(
 		[&](const auto entity, const DeleteComponent& text) {
+			Entity wrappedEntity = scene.createEntity(entity);
+
+			if (wrappedEntity.hasComponent<RigidBodyComponent>()) {
+				wrappedEntity.getComponent<RigidBodyComponent>()
+					.Body->release();
+			}
+
 			scene.getRegistry().destroy(entity);
 		});
 
@@ -175,7 +168,8 @@ void Game::shadowPass() {
 			DrawCubeRequest request;
 			request.Position = transform.Position;
 			request.Size = transform.Size;
-			request.Rotation = transform.Rotation;
+			request.RotationAngle = transform.RotationAngle;
+			request.RotationAxis = transform.RotationAxis;
 			request.DepthOnly = true;
 
 			renderer.drawCube(request);
@@ -187,7 +181,8 @@ void Game::shadowPass() {
 			DrawModelRequest request(model.Model);
 			request.Position = transform.Position;
 			request.Size = transform.Size;
-			request.Rotation = transform.Rotation;
+			request.RotationAngle = transform.RotationAngle;
+			request.RotationAxis = transform.RotationAxis;
 			request.DepthOnly = true;
 
 			renderer.drawModel(request);
@@ -202,7 +197,7 @@ void Game::renderPass() {
 	Renderer& renderer = Renderer::getInstance();
 	Scene& scene = *m_scene;
 
-	m_framebuffer->bind();
+	m_framebufferMultisampled->bind();
 
 	renderer.setViewport(
 		{0.0f, 0.0f}, {m_framebuffer->getWidth(), m_framebuffer->getHeight()});
@@ -221,7 +216,8 @@ void Game::renderPass() {
 			DrawLightRequest request;
 			request.Position = transform.Position;
 			request.Size = transform.Size;
-			request.Rotation = transform.Rotation;
+			request.RotationAngle = transform.RotationAngle;
+			request.RotationAxis = transform.RotationAxis;
 			request.Colour = colour.Colour;
 
 			renderer.drawLight(request);
@@ -234,7 +230,8 @@ void Game::renderPass() {
 			DrawCubeRequest request;
 			request.Position = transform.Position;
 			request.Size = transform.Size;
-			request.Rotation = transform.Rotation;
+			request.RotationAngle = transform.RotationAngle;
+			request.RotationAxis = transform.RotationAxis;
 			request.Colour = colour.Colour;
 			request.Texture = &texture.Texture;
 			request.TileCount = texture.TileCount;
@@ -249,12 +246,14 @@ void Game::renderPass() {
 			DrawModelRequest request(model.Model);
 			request.Position = transform.Position;
 			request.Size = transform.Size;
-			request.Rotation = transform.Rotation;
+			request.RotationAngle = transform.RotationAngle;
+			request.RotationAxis = transform.RotationAxis;
 			request.Colour = colour.Colour;
 
 			renderer.drawModel(request);
 		});
 
+	m_framebufferMultisampled->copy(*m_framebuffer);
 	m_framebuffer->unbind();
 }
 

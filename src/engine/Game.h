@@ -1,14 +1,13 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include "ColliderComponent.h"
 #include "Entity.h"
 #include "Framebuffer.h"
 #include "ImGuiLayer.h"
 #include "Layer.h"
 #include "OrthoCamera.h"
 #include "PerspectiveCamera.h"
-#include "PhysicsComponent.h"
+#include "Physics.h"
 #include "Renderer.h"
 #include "Scene.h"
 #include "Shader.h"
@@ -36,9 +35,13 @@ public:
 
 	const float inline getFPS() const { return m_fps; }
 	Framebuffer* getFramebuffer() { return m_framebuffer; }
+	Framebuffer* getFramebufferMultisampled() {
+		return m_framebufferMultisampled;
+	}
 	Framebuffer* getDepthMap() { return m_depthMap; }
 	std::shared_ptr<Scene> getScene() { return m_scene; }
 	Camera& getCamera() { return m_camera; }
+	Physics& getPhysics() { return m_physics; }
 
 private:
 	void onUpdate(float deltaTime);
@@ -57,10 +60,13 @@ private:
 	std::string m_title;
 	std::shared_ptr<Scene> m_scene;
 	Framebuffer* m_framebuffer = nullptr;
+	Framebuffer* m_framebufferMultisampled = nullptr;
 	Framebuffer* m_depthMap = nullptr;
 	ImGuiLayer m_imgui;
 	PerspectiveCamera m_camera = PerspectiveCamera();
+	Physics m_physics;
 };
+
 } // namespace MattEngine
 
 #endif

@@ -72,19 +72,6 @@ public:
 	}
 
 	void onUpdate(float deltaTime) override {
-		TransformComponent& transform =
-			getEntity("Dog").getComponent<TransformComponent>();
-		transform.Rotation.y += 45.0f * deltaTime;
-
-		TransformComponent& backpackTransform =
-			getEntity("Backpack").getComponent<TransformComponent>();
-		backpackTransform.Rotation.y += 45.0f * deltaTime;
-
-		TransformComponent& cubeTransform =
-			getEntity("Cube").getComponent<TransformComponent>();
-		cubeTransform.Rotation.y += 45.0f * deltaTime;
-		cubeTransform.Rotation.x += 45.0f * deltaTime;
-
 		TransformComponent& lightTransform =
 			getEntity("Light").getComponent<TransformComponent>();
 

@@ -1,39 +1,75 @@
 #include "Physics.h"
 
+#include "RigidBodyComponent.h"
+
+using namespace physx;
+
 namespace MattEngine {
 
-CollisionType Physics::isColliding(const glm::vec2& firstPosition,
-	const glm::vec2& firstSize, const glm::vec2& secondPosition,
-	const glm::vec2& secondSize, const glm::vec2& oldFirstPosition) {
-	bool collission = firstPosition.x + firstSize.x > secondPosition.x &&
-					  secondPosition.x + secondSize.x > firstPosition.x &&
-					  firstPosition.y + firstSize.y > secondPosition.y &&
-					  secondPosition.y + secondSize.y > firstPosition.y;
+void Physics::init() {
+	m_foundation =
+		PxCreateFoundation(PX_PHYSICS_VERSION, m_allocator, m_errorCallback);
 
-	if (!collission)
-		return CollisionType::NONE;
+	m_pvd = PxCreatePvd(*m_foundation);
 
-	// Left
-	if (oldFirstPosition.x + firstSize.x < secondPosition.x &&
-		firstPosition.x + firstSize.x > secondPosition.x)
-		return CollisionType::HORIZONTAL;
+	PxPvdTransport* transport =
+		PxDefaultPvdSocketTransportCreate("127.0.0.1", 5425, 10);
 
-	// Right
-	if (oldFirstPosition.x > secondPosition.x + secondSize.x &&
-		firstPosition.x < secondPosition.x + secondSize.x)
-		return CollisionType::HORIZONTAL;
+	m_pvd->connect(*transport, PxPvdInstrumentationFlag::eALL);
 
-	// Top
-	if (oldFirstPosition.y + firstSize.y < secondPosition.y &&
-		firstPosition.y + firstSize.y > secondPosition.y)
-		return CollisionType::VERTICAL;
+	m_physics = PxCreatePhysics(
+		PX_PHYSICS_VERSION, *m_foundation, PxTolerancesScale(), true, m_pvd);
 
-	// Bottom
-	if (oldFirstPosition.y > secondPosition.y + secondSize.y &&
-		firstPosition.y < secondPosition.y + secondSize.y)
-		return CollisionType::VERTICAL;
+	m_dispatcher = PxDefaultCpuDispatcherCreate(2);
 
-	return CollisionType::VERTICAL;
+	PxSceneDesc sceneDescription(m_physics->getTolerancesScale());
+	sceneDescription.gravity = PxVec3(0.0f, -9.81f, 0.0f);
+	sceneDescription.cpuDispatcher = m_dispatcher;
+	sceneDescription.filterShader = PxDefaultSimulationFilterShader;
+	m_scene = m_physics->createScene(sceneDescription);
+
+	PxPvdSceneClient* pvdClient = m_scene->getScenePvdClient();
+
+	if (pvdClient) {
+		pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_CONSTRAINTS, true);
+		pvdClient->setScenePvdFlag(PxPvdSceneFlag::eTRANSMIT_CONTACTS, true);
+		pvdClient->setScenePvdFlag(
+			PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
+	}
+
+	m_material = m_physics->createMaterial(0.5f, 0.5f, 0.6f);
+
+	PxRigidStatic* groundPlane =
+		PxCreatePlane(*m_physics, PxPlane(0, 1, 0, 0), *m_material);
+
+	m_scene->addActor(*groundPlane);
+}
+
+void Physics::simulate(float deltaTime) {
+	m_scene->simulate(deltaTime);
+	m_scene->fetchResults(true);
+}
+
+PxRigidDynamic* Physics::createRigidDynamic(
+	const glm::vec3& position, const glm::vec3& size) {
+	PxShape* shape = m_physics->createShape(
+		PxBoxGeometry(size.x / 2, size.y / 2, size.z / 2), *m_material);
+
+	PxRigidDynamic* body = m_physics->createRigidDynamic(
+		PxTransform(PxVec3(position.x, position.y, position.z)));
+
+	body->attachShape(*shape);
+	m_scene->addActor(*body);
+	shape->release();
+
+	return body;
+}
+
+void Physics::setLinearVelocity(Entity& entity, const glm::vec3& velocity) {
+	RigidBodyComponent& component = entity.getComponent<RigidBodyComponent>();
+
+	component.Body->setLinearVelocity(
+		PxVec3(velocity.x, velocity.y, velocity.z));
 }
 
 } // namespace MattEngine

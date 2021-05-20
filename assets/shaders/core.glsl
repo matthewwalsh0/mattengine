@@ -21,11 +21,11 @@ void main() {
 	v_Normal = mat3(transpose(inverse(u_Model))) * a_Normal;
 	v_Model = u_Model;
 	v_TexturePosition = a_TexturePosition;
-	v_FragmentPosition = vec3(u_Model * vec4(a_Position, 1.0));
+	v_FragmentPosition = vec3(u_Model * vec4(v_Position, 1.0));
 	v_FragmentPositionLightSpace =
 		u_LightSpaceMatrix * vec4(v_FragmentPosition, 1.0);
 
-	gl_Position = u_Projection * u_View * u_Model * vec4(a_Position, 1.0);
+	gl_Position = u_Projection * u_View * u_Model * vec4(v_Position, 1.0);
 }
 
 #separator
