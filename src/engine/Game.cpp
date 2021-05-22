@@ -97,21 +97,22 @@ void Game::onUpdate(float deltaTime) {
 
 			if (rigidDynamic.Velocity != glm::vec3(0.0f, 0.0f, 0.0f)) {
 				Entity wrappedEntity = scene.createEntity(entity);
+
 				m_physics.setLinearVelocity(
 					wrappedEntity, rigidDynamic.Velocity);
+
 				rigidDynamic.Velocity = {0.0f, 0.0f, 0.0f};
 			}
 
 			PxTransform physicsTransform = rigidDynamic.Body->getGlobalPose();
-			PxReal angle;
-			PxVec3 axis;
-			physicsTransform.q.toRadiansAndUnitAxis(angle, axis);
 
 			transform.Position.x = physicsTransform.p.x;
 			transform.Position.y = physicsTransform.p.y;
 			transform.Position.z = physicsTransform.p.z;
-			transform.RotationAngle = angle;
-			transform.RotationAxis = {axis.x, axis.y, axis.z};
+			transform.Rotation.w = physicsTransform.q.w;
+			transform.Rotation.x = physicsTransform.q.x;
+			transform.Rotation.y = physicsTransform.q.y;
+			transform.Rotation.z = physicsTransform.q.z;
 		});
 
 	scene.getRegistry().view<ScriptComponent>().each(
@@ -168,8 +169,7 @@ void Game::shadowPass() {
 			DrawCubeRequest request;
 			request.Position = transform.Position;
 			request.Size = transform.Size;
-			request.RotationAngle = transform.RotationAngle;
-			request.RotationAxis = transform.RotationAxis;
+			request.Rotation = transform.Rotation;
 			request.DepthOnly = true;
 
 			renderer.drawCube(request);
@@ -181,8 +181,7 @@ void Game::shadowPass() {
 			DrawModelRequest request(model.Model);
 			request.Position = transform.Position;
 			request.Size = transform.Size;
-			request.RotationAngle = transform.RotationAngle;
-			request.RotationAxis = transform.RotationAxis;
+			request.Rotation = transform.Rotation;
 			request.DepthOnly = true;
 
 			renderer.drawModel(request);
@@ -216,8 +215,7 @@ void Game::renderPass() {
 			DrawLightRequest request;
 			request.Position = transform.Position;
 			request.Size = transform.Size;
-			request.RotationAngle = transform.RotationAngle;
-			request.RotationAxis = transform.RotationAxis;
+			request.Rotation = transform.Rotation;
 			request.Colour = colour.Colour;
 
 			renderer.drawLight(request);
@@ -230,8 +228,7 @@ void Game::renderPass() {
 			DrawCubeRequest request;
 			request.Position = transform.Position;
 			request.Size = transform.Size;
-			request.RotationAngle = transform.RotationAngle;
-			request.RotationAxis = transform.RotationAxis;
+			request.Rotation = transform.Rotation;
 			request.Colour = colour.Colour;
 			request.Texture = &texture.Texture;
 			request.TileCount = texture.TileCount;
@@ -246,8 +243,7 @@ void Game::renderPass() {
 			DrawModelRequest request(model.Model);
 			request.Position = transform.Position;
 			request.Size = transform.Size;
-			request.RotationAngle = transform.RotationAngle;
-			request.RotationAxis = transform.RotationAxis;
+			request.Rotation = transform.Rotation;
 			request.Colour = colour.Colour;
 
 			renderer.drawModel(request);

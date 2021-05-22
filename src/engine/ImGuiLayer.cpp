@@ -16,7 +16,9 @@ namespace MattEngine {
 
 namespace ImGuiCustom {
 
-static void EntityList(std::vector<Entity>& entities, Entity& selectedEntity) {
+static bool EntityList(std::vector<Entity>& entities, Entity& selectedEntity) {
+	bool newSelection = false;
+
 	ImGui::Begin("Entities");
 	ImGui::BeginListBox("##EntityList",
 		ImVec2(-FLT_MIN, 5 * ImGui::GetTextLineHeightWithSpacing()));
@@ -26,15 +28,19 @@ static void EntityList(std::vector<Entity>& entities, Entity& selectedEntity) {
 	for (auto& entity : game.getScene()->getAllEntities()) {
 		if (ImGui::Selectable(entity.getComponent<TagComponent>().Tag.c_str(),
 				selectedEntity == entity)) {
+
 			selectedEntity = entity;
+			newSelection = true;
 		}
 	}
 
 	ImGui::EndListBox();
 	ImGui::End();
+
+	return newSelection;
 }
 
-static void ComponentEditor(Entity& selectedEntity) {
+static void ComponentEditor(Entity& selectedEntity, bool newSelection) {
 	if (!selectedEntity)
 		return;
 
@@ -46,10 +52,34 @@ static void ComponentEditor(Entity& selectedEntity) {
 
 		if (ImGui::CollapsingHeader(
 				"Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
-			ImGui::SliderFloat3("Position", glm::value_ptr(transform.Position),
-				-10.0f, 10.0f, "%.3f", ImGuiSliderFlags_None);
-			ImGui::SliderFloat3("Size", glm::value_ptr(transform.Size), -10.0f,
-				10.0f, "%.3f", ImGuiSliderFlags_None);
+			ImGui::DragFloat3("Position", glm::value_ptr(transform.Position),
+				0.1f, -1000.0f, 1000.0f);
+			ImGui::DragFloat3("Size", glm::value_ptr(transform.Size), 0.1f,
+				-1000.0f, 1000.0f);
+
+			static glm::vec3 rotationEulerDegrees;
+
+			if (newSelection) {
+				glm::vec3 rotationEulerRadians =
+					glm::eulerAngles(transform.Rotation);
+
+				rotationEulerDegrees =
+					glm::vec3(glm::degrees(rotationEulerRadians.x),
+						glm::degrees(rotationEulerRadians.y),
+						glm::degrees(rotationEulerRadians.z));
+			}
+
+			bool rotationChanged = ImGui::DragFloat3("Rotation",
+				glm::value_ptr(rotationEulerDegrees), 5.0f, -180.0f, 180.0f);
+
+			if (rotationChanged) {
+				glm::quat updatedQuat =
+					glm::quat(glm::vec3(glm::radians(rotationEulerDegrees.x),
+						glm::radians(rotationEulerDegrees.y),
+						glm::radians(rotationEulerDegrees.z)));
+
+				transform.Rotation = updatedQuat;
+			}
 		}
 	}
 
@@ -123,8 +153,8 @@ void ImGuiLayer::onUpdate() {
 
 	Game& game = Game::getInstance();
 	std::vector<Entity> entities = game.getScene()->getAllEntities();
-	ImGuiCustom::EntityList(entities, m_selectedEntity);
-	ImGuiCustom::ComponentEditor(m_selectedEntity);
+	bool newSelection = ImGuiCustom::EntityList(entities, m_selectedEntity);
+	ImGuiCustom::ComponentEditor(m_selectedEntity, newSelection);
 
 	Renderer& renderer = Renderer::getInstance();
 

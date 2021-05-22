@@ -6,16 +6,17 @@
 
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 namespace MattEngine {
 
 namespace Utils {
 
 static glm::mat4 calculateModel(const glm::vec3& position,
-	const glm::vec3& size, const glm::vec3& rotation, const float& angle) {
+	const glm::vec3& size, const glm::quat& rotation) {
 	glm::mat4 scale = glm::scale(glm::mat4(1.0f), size);
 	glm::mat4 translate = glm::translate(glm::mat4(1.0f), position);
-	glm::mat4 rotate = glm::rotate(glm::mat4(1.0f), angle, rotation);
+	glm::mat4 rotate = glm::mat4_cast(rotation);
 
 	return translate * rotate * scale;
 }
@@ -69,8 +70,8 @@ void Renderer::setViewport(const glm::vec2& start, const glm::vec2& size) {
 }
 
 void Renderer::drawCube(DrawCubeRequest& request) {
-	glm::mat4 model = Utils::calculateModel(request.Position, request.Size,
-		request.RotationAxis, request.RotationAngle);
+	glm::mat4 model =
+		Utils::calculateModel(request.Position, request.Size, request.Rotation);
 
 	m_cube->bind();
 
@@ -96,8 +97,8 @@ void Renderer::drawCube(DrawCubeRequest& request) {
 }
 
 void Renderer::drawModel(DrawModelRequest& request) {
-	glm::mat4 model = Utils::calculateModel(request.Position, request.Size,
-		request.RotationAxis, request.RotationAngle);
+	glm::mat4 model =
+		Utils::calculateModel(request.Position, request.Size, request.Rotation);
 
 	if (request.DepthOnly) {
 		m_shaderShadow.bind();
@@ -119,8 +120,8 @@ void Renderer::drawModel(DrawModelRequest& request) {
 }
 
 void Renderer::drawLight(DrawLightRequest& request) {
-	glm::mat4 model = Utils::calculateModel(request.Position, request.Size,
-		request.RotationAxis, request.RotationAngle);
+	glm::mat4 model =
+		Utils::calculateModel(request.Position, request.Size, request.Rotation);
 
 	m_cube->bind();
 	m_defaultTexture.bind();
