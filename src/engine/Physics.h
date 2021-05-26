@@ -19,6 +19,8 @@ public:
 		const glm::vec3& position, const glm::vec3& size);
 	void setLinearVelocity(Entity& entity, const glm::vec3& velocity);
 
+	PxController& getPlayerController() { return *m_playerController; }
+
 private:
 	PxDefaultAllocator m_allocator;
 	PxDefaultErrorCallback m_errorCallback;
@@ -28,6 +30,7 @@ private:
 	PxScene* m_scene = NULL;
 	PxMaterial* m_material = NULL;
 	PxPvd* m_pvd = NULL;
+	PxController* m_playerController;
 };
 
 } // namespace MattEngine

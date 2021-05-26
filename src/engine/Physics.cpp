@@ -26,6 +26,7 @@ void Physics::init() {
 	sceneDescription.gravity = PxVec3(0.0f, -9.81f, 0.0f);
 	sceneDescription.cpuDispatcher = m_dispatcher;
 	sceneDescription.filterShader = PxDefaultSimulationFilterShader;
+	sceneDescription.flags = PxSceneFlag::eENABLE_STABILIZATION;
 	m_scene = m_physics->createScene(sceneDescription);
 
 	PxPvdSceneClient* pvdClient = m_scene->getScenePvdClient();
@@ -37,10 +38,17 @@ void Physics::init() {
 			PxPvdSceneFlag::eTRANSMIT_SCENEQUERIES, true);
 	}
 
-	m_material = m_physics->createMaterial(0.5f, 0.5f, 0.6f);
+	m_material = m_physics->createMaterial(1.0f, 1.0f, 0.5f);
 
 	PxRigidStatic* groundPlane =
 		PxCreatePlane(*m_physics, PxPlane(0, 1, 0, 0), *m_material);
+
+	PxControllerManager* manager = PxCreateControllerManager(*m_scene);
+
+	PxBoxControllerDesc playerControllerDesc;
+	playerControllerDesc.material = m_material;
+
+	m_playerController = manager->createController(playerControllerDesc);
 
 	m_scene->addActor(*groundPlane);
 }
@@ -59,6 +67,9 @@ PxRigidDynamic* Physics::createRigidDynamic(
 		PxTransform(PxVec3(position.x, position.y, position.z)));
 
 	body->attachShape(*shape);
+	body->setStabilizationThreshold(0.05f);
+	PxRigidBodyExt::updateMassAndInertia(*body, 10.0f);
+
 	m_scene->addActor(*body);
 	shape->release();
 

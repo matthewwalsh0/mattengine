@@ -2,7 +2,6 @@
 
 #include "ColourComponent.h"
 #include "Game.h"
-#include "OrthoCameraComponent.h"
 #include "TransformComponent.h"
 #include "Window.h"
 
@@ -91,19 +90,6 @@ static void ComponentEditor(Entity& selectedEntity, bool newSelection) {
 		}
 	}
 
-	if (selectedEntity.hasComponent<OrthoCameraComponent>()) {
-		OrthoCameraComponent& orthoCamera =
-			selectedEntity.getComponent<OrthoCameraComponent>();
-
-		if (ImGui::CollapsingHeader(
-				"Ortho Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
-			ImGui::SliderFloat4("Bounds", glm::value_ptr(orthoCamera.Bounds),
-				-100.0f, 100.0f, "%.3f", ImGuiSliderFlags_None);
-			ImGui::SliderFloat2("Planes", glm::value_ptr(orthoCamera.Planes),
-				-100.0f, 100.0f, "%.3f", ImGuiSliderFlags_None);
-		}
-	}
-
 	ImGui::End();
 }
 
@@ -170,6 +156,22 @@ void ImGuiLayer::onUpdate() {
 	ImGui::PopStyleVar();
 	ImGui::Begin("Performance");
 	ImGui::Text("FPS: %.2f", game.getFPS());
+	ImGui::End();
+
+	ImGui::Begin("Engine", NULL, ImGuiWindowFlags_NoScrollbar);
+
+	if (ImGui::CollapsingHeader("Display", ImGuiTreeNodeFlags_DefaultOpen)) {
+		Framebuffer* framebufferMultisampled =
+			game.getFramebufferMultisampled();
+
+		int samples = game.getFramebufferMultisampled()->getSamples();
+		bool samplesChanged = ImGui::SliderInt("MSAA", &samples, 0, 16);
+
+		if (samplesChanged) {
+			framebufferMultisampled->setSamples(samples);
+		}
+	}
+
 	ImGui::End();
 
 	ImGui::Render();

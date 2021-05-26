@@ -20,6 +20,11 @@ void Framebuffer::resize(const unsigned int width, const unsigned int height) {
 	invalidate();
 }
 
+void Framebuffer::setSamples(const unsigned int samples) {
+	m_samples = samples;
+	invalidate();
+}
+
 void Framebuffer::bind() const {
 	glBindFramebuffer(GL_FRAMEBUFFER, m_framebufferId);
 }

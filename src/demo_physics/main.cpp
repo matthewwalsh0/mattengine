@@ -1,7 +1,9 @@
 #include "ColourComponent.h"
+#include "FPSPlayerController.h"
 #include "Game.h"
 #include "LightComponent.h"
 #include "ModelComponent.h"
+#include "PerspectiveCameraComponent.h"
 #include "RigidBodyComponent.h"
 #include "SkyBoxComponent.h"
 #include "TextureComponent.h"
@@ -17,15 +19,20 @@ private:
 	MattEngine::Texture m_textureFloor =
 		MattEngine::Texture("assets/textures/floor.png");
 
+	FPSPlayerController m_playerController;
+
 private:
-	void createStack() {
-		for (int i = 0; i < 20; i++) {
-			for (int j = 0; j < 20 - i; j++) {
+	void createStack(
+		const unsigned int stackSize = 20, const float boxSize = 1.0f) {
+		for (int y = 0; y < stackSize; y++) {
+			for (int x = 0; x < stackSize - y; x++) {
 				MattEngine::Entity box = createEntity();
 				box.addComponent<TagComponent>("Box");
 				box.addComponent<TransformComponent>(
-					glm::vec3((j * 2) - (20 - i), i * 2 + 1, 0.0f) * 0.5f,
-					glm::vec3(1.0f, 1.0f, 1.0f));
+					glm::vec3((x * boxSize * 1.1 + (y * (boxSize / 2))) -
+								  (stackSize * (boxSize / 2)),
+						y * boxSize + (boxSize / 2), 0.0f),
+					glm::vec3(boxSize, boxSize, boxSize));
 				box.addComponent<ColourComponent>(glm::vec3(1.0f, 1.0f, 1.0f));
 				box.addComponent<TextureComponent>(m_texture);
 				box.addComponent<RigidBodyComponent>();
@@ -33,7 +40,7 @@ private:
 		}
 	}
 
-	void fireBall() {
+	void fireBall(const float speed = 100.0f, const float size = 2.0f) {
 		MattEngine::PerspectiveCamera& camera =
 			(MattEngine::PerspectiveCamera&)Game::getInstance().getCamera();
 
@@ -43,11 +50,12 @@ private:
 		MattEngine::Entity ball = createEntity();
 		ball.addComponent<TagComponent>("Ball");
 		ball.addComponent<TransformComponent>(
-			position, glm::vec3(5.0f, 5.0f, 5.0f));
+			position + glm::rotate(cameraRotation, {0.0f, 0.0f, 1.0f}),
+			glm::vec3(size, size, size));
 		ball.addComponent<ColourComponent>(glm::vec3(1.0f, 0.0f, 0.0f));
 		ball.addComponent<TextureComponent>(m_texture);
 		ball.addComponent<RigidBodyComponent>(
-			glm::rotate(cameraRotation, glm::vec3(0.0f, 0.0f, -1.0f) * 200.0f));
+			glm::rotate(cameraRotation, glm::vec3(0.0f, 0.0f, 1.0f) * speed));
 	}
 
 	void reset() {
@@ -78,11 +86,23 @@ public:
 		floor.addComponent<ColourComponent>(glm::vec3(1.0f, 1.0f, 1.0f));
 		floor.addComponent<TextureComponent>(m_textureFloor, 50);
 
+		MattEngine::Entity player = createEntity();
+		player.addComponent<TagComponent>("Player");
+		player.addComponent<TransformComponent>(
+			glm::vec3(0.0f, 5.0f, 30.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+		player.addComponent<PerspectiveCameraComponent>();
+
 		createStack();
+
+		m_playerController.init(player);
 	}
 
 	void onUpdate(float deltaTime) override {
-		Window window = Window::getInstance();
+
+		m_playerController.onUpdate(deltaTime);
+
+		Window& window = Window::getInstance();
+
 		static bool down = false;
 
 		if (window.isKeyDown(GLFW_KEY_C)) {

@@ -9,13 +9,14 @@ using namespace MattEngine;
 PerspectiveCamera::PerspectiveCamera() { invalidate(); }
 
 const glm::quat PerspectiveCamera::getRotationQuaternion() {
-	glm::quat cameraRotation(glm::vec3(glm::radians(m_rotation.x),
-		glm::radians(-m_rotation.y - 90.0f), glm::radians(m_rotation.z)));
 
-	return cameraRotation;
+	return m_rotation;
 }
 
 void PerspectiveCamera::onUpdate(float deltaTime) {
+	if (!m_controllerActive)
+		return;
+
 	if (Window::getInstance().isKeyDown(GLFW_KEY_W)) {
 		m_position += m_forward * deltaTime * m_speed;
 		invalidate();
@@ -70,29 +71,15 @@ void PerspectiveCamera::onUpdate(float deltaTime) {
 	xOffset *= sensitivity;
 	yOffset *= sensitivity;
 
-	m_rotation.y += xOffset;
-	m_rotation.x += yOffset;
+	m_rotation *=
+		glm::angleAxis(glm::radians(-yOffset), glm::vec3(1.0f, 0.0f, 0.0f)) *
+		glm::angleAxis(glm::radians(-xOffset), glm::vec3(0.0f, 1.0f, 0.0f));
 
-	if (m_rotation.x > 89.0f)
-		m_rotation.x = 89.0f;
-	if (m_rotation.x < -89.0f)
-		m_rotation.x = -89.0f;
-
-	if (xOffset != 0 || yOffset != 0) {
-		invalidate();
-	}
+	invalidate();
 }
 
 void PerspectiveCamera::invalidate() {
-	glm::vec3 direction;
-
-	direction.x =
-		cos(glm::radians(m_rotation.y)) * cos(glm::radians(m_rotation.x));
-
-	direction.y = sin(glm::radians(m_rotation.x));
-
-	direction.z =
-		sin(glm::radians(m_rotation.y)) * cos(glm::radians(m_rotation.x));
+	glm::vec3 direction = glm::rotate(m_rotation, glm::vec3(0.0f, 0.0f, 1.0f));
 
 	m_forward = glm::normalize(direction);
 	m_view = glm::lookAt(m_position, m_position + m_forward, m_up);

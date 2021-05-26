@@ -5,7 +5,7 @@
 #include "LightComponent.h"
 #include "Mesh.h"
 #include "ModelComponent.h"
-#include "OrthoCameraComponent.h"
+#include "PerspectiveCameraComponent.h"
 #include "RigidBodyComponent.h"
 #include "ScriptComponent.h"
 #include "SkyBoxComponent.h"
@@ -139,6 +139,36 @@ void Game::onUpdate(float deltaTime) {
 
 	m_camera.onUpdate(deltaTime);
 	scene.onUpdate(deltaTime);
+
+	scene.getRegistry().view<RigidBodyComponent, TransformComponent>().each(
+		[&](const auto entity, RigidBodyComponent& rigidDynamic,
+			TransformComponent& transform) {
+			if (!rigidDynamic.Body) {
+				rigidDynamic.Body = m_physics.createRigidDynamic(
+					transform.Position, transform.Size);
+			}
+
+			if (rigidDynamic.Velocity != glm::vec3(0.0f, 0.0f, 0.0f)) {
+				Entity wrappedEntity = scene.createEntity(entity);
+
+				m_physics.setLinearVelocity(
+					wrappedEntity, rigidDynamic.Velocity);
+
+				rigidDynamic.Velocity = {0.0f, 0.0f, 0.0f};
+			}
+
+			PxTransform physicsTransform = rigidDynamic.Body->getGlobalPose();
+
+			physicsTransform.p.x = transform.Position.x;
+			physicsTransform.p.y = transform.Position.y;
+			physicsTransform.p.z = transform.Position.z;
+			physicsTransform.q.w = transform.Rotation.w;
+			physicsTransform.q.x = transform.Rotation.x;
+			physicsTransform.q.y = transform.Rotation.y;
+			physicsTransform.q.z = transform.Rotation.z;
+
+			rigidDynamic.Body->setGlobalPose(physicsTransform);
+		});
 }
 
 void Game::shadowPass() {
@@ -157,6 +187,14 @@ void Game::shadowPass() {
 	glm::vec3& lightColour = light.getComponent<ColourComponent>().Colour;
 
 	Light mainLight(lightPosition, lightColour);
+
+	scene.getRegistry()
+		.view<TransformComponent, PerspectiveCameraComponent>()
+		.each([&](auto rawEntity, TransformComponent& transform,
+				  PerspectiveCameraComponent& perspectiveCamera) {
+			m_camera.setPosition(transform.Position);
+			m_camera.setRotation(perspectiveCamera.Rotation);
+		});
 
 	renderer.beginFrame(m_camera, mainLight);
 

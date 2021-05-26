@@ -42,11 +42,6 @@ Window::Window(
 	MATTENGINE_ASSERT(
 		gladResult, "Could not load OpenGL - Error Code: %d", gladResult);
 
-	MATTENGINE_LOG("OpenGL:", NULL);
-	MATTENGINE_LOG("  Vendor: %s", glGetString(GL_VENDOR));
-	MATTENGINE_LOG("  Renderer: %s", glGetString(GL_RENDERER));
-	MATTENGINE_LOG("  Version: %s", glGetString(GL_VERSION));
-
 	glfwSetWindowSizeCallback(m_window, windowResizeCallback);
 }
 

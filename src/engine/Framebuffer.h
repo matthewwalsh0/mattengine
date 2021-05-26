@@ -11,12 +11,14 @@ public:
 		bool hasColourAttachment = true, bool hasDepthAttachment = true,
 		unsigned int samples = 0);
 	void resize(const unsigned int width, const unsigned int height);
+	void setSamples(const unsigned int samples);
 	void bind() const;
 	void unbind() const;
 	unsigned int getColourTextureId() { return m_colourTextureId; }
 	unsigned int getDepthTextureId() { return m_depthTextureId; }
 	unsigned int getWidth() { return m_width; }
 	unsigned int getHeight() { return m_height; }
+	unsigned int getSamples() { return m_samples; }
 	void copy(Framebuffer& target);
 
 private:
