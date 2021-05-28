@@ -9,13 +9,37 @@
 
 namespace MattEngine {
 
-void windowResizeCallback(GLFWwindow* window, int width, int height) {}
-
-void mouseCallback(GLFWwindow* window, double x, double y) {
+void windowResizeCallback(GLFWwindow* window, int width, int height) {
 	Window& instance = Window::getInstance();
-	instance.MouseX = x;
-	instance.MouseY = y;
-	instance.MouseMoved = true;
+	instance.m_size = {width, height};
+}
+
+void mouseCursorCallback(GLFWwindow* window, double x, double y) {
+	Window& instance = Window::getInstance();
+
+	if (!instance.m_focused)
+		return;
+
+	instance.m_mousePosition = {x, y};
+	instance.m_mouseMoved = true;
+}
+
+void mouseButtonCallback(
+	GLFWwindow* window, int button, int actions, int mods) {
+	Window& instance = Window::getInstance();
+
+	if (!instance.m_focused)
+		return;
+
+	if (actions == GLFW_PRESS) {
+		if (button == GLFW_MOUSE_BUTTON_LEFT) {
+			instance.m_mouseLeftDown = true;
+		}
+	} else if (actions == GLFW_RELEASE) {
+		if (button == GLFW_MOUSE_BUTTON_LEFT) {
+			instance.m_mouseLeftDown = false;
+		}
+	}
 }
 
 Window::Window(
@@ -36,7 +60,8 @@ Window::Window(
 	MATTENGINE_ASSERT(m_window, "Could not create window.", NULL);
 
 	glfwMakeContextCurrent(m_window);
-	glfwSetCursorPosCallback(m_window, mouseCallback);
+	glfwSetCursorPosCallback(m_window, mouseCursorCallback);
+	glfwSetMouseButtonCallback(m_window, mouseButtonCallback);
 
 	unsigned int gladResult = gladLoadGL();
 	MATTENGINE_ASSERT(
@@ -60,6 +85,9 @@ void Window::setTitle(const std::string& title) {
 }
 
 bool Window::isKeyDown(const int keycode) const {
+	if (!m_focused)
+		return false;
+
 	auto state = glfwGetKey(m_window, keycode);
 	return state == GLFW_PRESS || state == GLFW_REPEAT;
 }
@@ -67,6 +95,16 @@ bool Window::isKeyDown(const int keycode) const {
 void Window::setMouseEnabled(bool enabled) {
 	glfwSetInputMode(m_window, GLFW_CURSOR,
 		enabled ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
+}
+
+const glm::vec2& Window::getSize() {
+	if (m_size == glm::vec2(0.0f, 0.0f)) {
+		int width, height;
+		glfwGetWindowSize(m_window, &width, &height);
+		m_size = {width, height};
+	}
+
+	return m_size;
 }
 
 } // namespace MattEngine

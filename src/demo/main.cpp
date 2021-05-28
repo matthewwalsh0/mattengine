@@ -66,9 +66,6 @@ public:
 
 		MattEngine::Entity skybox = createEntity();
 		skybox.addComponent<SkyBoxComponent>("assets/textures/skybox");
-
-		((PerspectiveCamera*)&Game::getInstance().getCamera())
-			->setControllerActive(true);
 	}
 
 	void onUpdate(float deltaTime) override {

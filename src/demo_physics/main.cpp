@@ -45,7 +45,7 @@ private:
 			(MattEngine::PerspectiveCamera&)Game::getInstance().getCamera();
 
 		const glm::vec3& position = camera.getPosition();
-		glm::quat cameraRotation = camera.getRotationQuaternion();
+		glm::quat cameraRotation = camera.getRotation();
 
 		MattEngine::Entity ball = createEntity();
 		ball.addComponent<TagComponent>("Ball");

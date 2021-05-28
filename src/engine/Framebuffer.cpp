@@ -38,7 +38,18 @@ void Framebuffer::copy(Framebuffer& target) {
 		GL_COLOR_BUFFER_BIT, GL_NEAREST);
 }
 
+void Framebuffer::copyToScreen() {
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, m_framebufferId);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+	glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height,
+		GL_COLOR_BUFFER_BIT, GL_NEAREST);
+}
+
 void Framebuffer::invalidate() {
+	if (m_framebufferId != 0) {
+		glDeleteFramebuffers(1, &m_framebufferId);
+	}
+
 	glGenFramebuffers(1, &m_framebufferId);
 	glBindFramebuffer(GL_FRAMEBUFFER, m_framebufferId);
 

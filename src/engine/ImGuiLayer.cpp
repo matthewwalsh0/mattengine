@@ -39,6 +39,47 @@ static bool EntityList(std::vector<Entity>& entities, Entity& selectedEntity) {
 	return newSelection;
 }
 
+static bool QuatRotation(
+	glm::quat& rotation, glm::vec3& rotationEulerDegrees, bool newSelection) {
+
+	if (newSelection) {
+		glm::vec3 rotationEulerRadians = glm::eulerAngles(rotation);
+
+		rotationEulerDegrees = glm::vec3(glm::degrees(rotationEulerRadians.x),
+			glm::degrees(rotationEulerRadians.y),
+			glm::degrees(rotationEulerRadians.z));
+	}
+
+	bool rotationChanged = ImGui::DragFloat3("Rotation",
+		glm::value_ptr(rotationEulerDegrees), 5.0f, -180.0f, 180.0f);
+
+	if (rotationChanged) {
+		glm::quat updatedQuat =
+			glm::quat(glm::vec3(glm::radians(rotationEulerDegrees.x),
+				glm::radians(rotationEulerDegrees.y),
+				glm::radians(rotationEulerDegrees.z)));
+
+		rotation = updatedQuat;
+
+		return true;
+	}
+
+	return false;
+}
+
+static void PerspectiveCamera(PerspectiveCamera& camera) {
+	glm::vec3 position = camera.getPosition();
+
+	if (ImGui::DragFloat3(
+			"Position", glm::value_ptr(position), 0.1f, -1000.0f, 1000.0f)) {
+		camera.setPosition(position);
+	}
+
+	glm::quat rotation = camera.getRotation();
+	static glm::vec3 rotationEulerDegrees;
+	ImGuiCustom::QuatRotation(rotation, rotationEulerDegrees, true);
+}
+
 static void ComponentEditor(Entity& selectedEntity, bool newSelection) {
 	if (!selectedEntity)
 		return;
@@ -57,28 +98,8 @@ static void ComponentEditor(Entity& selectedEntity, bool newSelection) {
 				-1000.0f, 1000.0f);
 
 			static glm::vec3 rotationEulerDegrees;
-
-			if (newSelection) {
-				glm::vec3 rotationEulerRadians =
-					glm::eulerAngles(transform.Rotation);
-
-				rotationEulerDegrees =
-					glm::vec3(glm::degrees(rotationEulerRadians.x),
-						glm::degrees(rotationEulerRadians.y),
-						glm::degrees(rotationEulerRadians.z));
-			}
-
-			bool rotationChanged = ImGui::DragFloat3("Rotation",
-				glm::value_ptr(rotationEulerDegrees), 5.0f, -180.0f, 180.0f);
-
-			if (rotationChanged) {
-				glm::quat updatedQuat =
-					glm::quat(glm::vec3(glm::radians(rotationEulerDegrees.x),
-						glm::radians(rotationEulerDegrees.y),
-						glm::radians(rotationEulerDegrees.z)));
-
-				transform.Rotation = updatedQuat;
-			}
+			QuatRotation(
+				transform.Rotation, rotationEulerDegrees, newSelection);
 		}
 	}
 
@@ -105,10 +126,11 @@ static void GameViewport(Game& game, Renderer& renderer, ImVec2& viewportSize) {
 
 	if (screenSize.x != viewportSize.x || screenSize.y != viewportSize.y) {
 		viewportSize = screenSize;
-		renderer.setViewport({0.0f, 0.0f}, {screenSize.x, screenSize.y});
-		game.getCamera().setAspectRatio(screenSize.x / screenSize.y);
-		framebuffer->resize(screenSize.x, screenSize.y);
-		framebufferMultisampled->resize(screenSize.x, screenSize.y);
+		game.resize({screenSize.x, screenSize.y});
+	}
+
+	if (!game.isActive()) {
+		Window::getInstance().setFocused(ImGui::IsWindowHovered());
 	}
 
 	ImGui::End();
@@ -130,14 +152,47 @@ void ImGuiLayer::onInit() {
 }
 
 void ImGuiLayer::onUpdate() {
+	Game& game = Game::getInstance();
+	Window& window = Window::getInstance();
+
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
 
+	if (ImGui::IsKeyPressed(GLFW_KEY_ENTER)) {
+		if (ImGui::IsKeyDown(GLFW_KEY_LEFT_SUPER)) {
+			game.setFullscreen(true);
+		}
+
+		window.setMouseEnabled(false);
+		window.setFocused(true);
+		game.play();
+	}
+
+	if (ImGui::IsKeyPressed(GLFW_KEY_ESCAPE)) {
+		window.setMouseEnabled(true);
+		window.setFocused(false);
+		game.setFullscreen(false);
+		game.pause();
+
+		m_viewportSize = {0.0f, 0.0f};
+	}
+
+	if (game.isFullscreen()) {
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		return;
+	}
+
+	if (game.isActive()) {
+		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouse;
+	} else {
+		ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
+	}
+
 	ImGui::DockSpaceOverViewport();
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
-	Game& game = Game::getInstance();
 	std::vector<Entity> entities = game.getScene()->getAllEntities();
 	bool newSelection = ImGuiCustom::EntityList(entities, m_selectedEntity);
 	ImGuiCustom::ComponentEditor(m_selectedEntity, newSelection);
@@ -160,27 +215,30 @@ void ImGuiLayer::onUpdate() {
 
 	ImGui::Begin("Engine", NULL, ImGuiWindowFlags_NoScrollbar);
 
-	if (ImGui::CollapsingHeader("Display", ImGuiTreeNodeFlags_DefaultOpen)) {
-		Framebuffer* framebufferMultisampled =
-			game.getFramebufferMultisampled();
+	Framebuffer* framebufferMultisampled = game.getFramebufferMultisampled();
 
-		int samples = game.getFramebufferMultisampled()->getSamples();
-		bool samplesChanged = ImGui::SliderInt("MSAA", &samples, 0, 16);
+	int samples = game.getFramebufferMultisampled()->getSamples();
+	bool samplesChanged = ImGui::SliderInt("MSAA", &samples, 0, 16);
 
-		if (samplesChanged) {
-			framebufferMultisampled->setSamples(samples);
-		}
+	if (samplesChanged) {
+		framebufferMultisampled->setSamples(samples);
 	}
 
 	ImGui::End();
 
-	ImGui::Render();
+	ImGui::Begin("Camera", NULL, ImGuiWindowFlags_NoScrollbar);
+	ImGui::Text("Game");
+	ImGui::Spacing();
+	ImGuiCustom::PerspectiveCamera(game.getCamera());
+	ImGui::Spacing();
+	ImGui::Separator();
+	ImGui::Spacing();
+	ImGui::Text("Editor");
+	ImGui::Spacing();
+	ImGuiCustom::PerspectiveCamera(game.getEditorCamera());
+	ImGui::End();
 
-	if (ImGui::IsKeyPressed(GLFW_KEY_L, false)) {
-		m_gameMode = !m_gameMode;
-		Window::getInstance().setMouseEnabled(!m_gameMode);
-		((PerspectiveCamera&)game.getCamera()).enableMouse(m_gameMode);
-	}
+	ImGui::Render();
 
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }

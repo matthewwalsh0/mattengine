@@ -3,6 +3,8 @@
 
 #include "Camera.h"
 
+#include "FlyCameraController.h"
+
 #include <glm/gtx/quaternion.hpp>
 
 namespace MattEngine {
@@ -10,13 +12,12 @@ namespace MattEngine {
 class PerspectiveCamera : public Camera {
 public:
 	PerspectiveCamera();
+	void onUpdate(float deltaTime) override;
+
 	const glm::mat4& getProjection() override { return m_projection; };
 	const glm::mat4& getView() override { return m_view; };
 	const glm::vec3& getPosition() override { return m_position; }
-	const glm::quat getRotationQuaternion();
-	void onUpdate(float deltaTime) override;
-
-	void setControllerActive(bool active) { m_controllerActive = true; }
+	const glm::quat& getRotation() { return m_rotation; }
 
 	const void setAspectRatio(float aspectRatio) override {
 		m_aspectRatio = aspectRatio;
@@ -33,14 +34,6 @@ public:
 		invalidate();
 	};
 
-	void enableMouse(bool enabled) {
-		m_mouseEnabled = enabled;
-
-		if (m_mouseEnabled) {
-			m_mouseMoved = false;
-		}
-	}
-
 private:
 	void invalidate();
 
@@ -55,12 +48,7 @@ public:
 	float m_angle = 45.0f;
 	float m_aspectRatio = 1.0f;
 	float m_speed = 30.0f;
-	float m_rotationSpeed = 90.0f;
-	float m_lastMouseX = 0.0f;
-	float m_lastMouseY = 0.0f;
-	bool m_mouseMoved = false;
-	bool m_mouseEnabled = false;
-	bool m_controllerActive = false;
+	FlyCameraController m_controller;
 };
 
 } // namespace MattEngine

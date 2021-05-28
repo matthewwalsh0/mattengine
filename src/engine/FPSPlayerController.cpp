@@ -13,9 +13,13 @@ void FPSPlayerController::init(Entity entity) {
 	Physics& physics = Game::getInstance().getPhysics();
 	PxController& playerController = physics.getPlayerController();
 	TransformComponent& transform = m_entity.getComponent<TransformComponent>();
+	PerspectiveCameraComponent& perspectiveCamera =
+		m_entity.getComponent<PerspectiveCameraComponent>();
 
 	playerController.setPosition(PxExtendedVec3(
 		transform.Position.x, transform.Position.y, transform.Position.z));
+
+	m_rotationController.init(m_rotation);
 }
 
 void FPSPlayerController::onUpdate(float deltaTime) {
@@ -65,45 +69,6 @@ void FPSPlayerController::onUpdate(float deltaTime) {
 	PxExtendedVec3 playerPosition = playerController.getPosition();
 	transform.Position = {playerPosition.x, playerPosition.y, playerPosition.z};
 
-	perspectiveCamera.Rotation =
-		glm::quat(glm::vec3(glm::radians(m_rotationEuler.x),
-			glm::radians(m_rotationEuler.y), glm::radians(m_rotationEuler.z)));
-
-	if (!m_mouseEnabled)
-		return;
-
-	if (!window.MouseMoved)
-		return;
-
-	float xOffset = window.MouseX - m_lastMouseX;
-	float yOffset = m_lastMouseY - window.MouseY;
-
-	m_lastMouseX = window.MouseX;
-	m_lastMouseY = window.MouseY;
-
-	if (!m_mouseMoved) {
-		m_mouseMoved = true;
-		return;
-	}
-
-	const float sensitivity = 0.1f;
-	xOffset *= sensitivity;
-	yOffset *= sensitivity;
-
-	m_rotationEuler.x -= yOffset;
-	m_rotationEuler.y -= xOffset;
-
-	if (m_rotationEuler.x > 89.0f)
-		m_rotationEuler.x = 89.0f;
-	else if (m_rotationEuler.x < -89.0f)
-		m_rotationEuler.x = -89.0f;
-
-	if (m_rotationEuler.y > 180.0f)
-		m_rotationEuler.y = -180.0f + (m_rotationEuler.y - 180.0f);
-	else if (m_rotationEuler.y < -180.0f)
-		m_rotationEuler.y = 180.0f + (m_rotationEuler.y + 180.0f);
-
-	perspectiveCamera.Rotation =
-		glm::quat(glm::vec3(glm::radians(m_rotationEuler.x),
-			glm::radians(m_rotationEuler.y), glm::radians(m_rotationEuler.z)));
+	m_rotationController.onUpdate(deltaTime);
+	perspectiveCamera.Rotation = m_rotation;
 }

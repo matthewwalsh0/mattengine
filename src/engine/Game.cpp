@@ -25,6 +25,18 @@ Game::Game(Window& window) : m_window(window), m_title(window.getTitle()) {
 	s_instance = this;
 }
 
+void Game::resize(const glm::vec2& size) {
+	Renderer& renderer = Renderer::getInstance();
+	renderer.setViewport({0.0f, 0.0f}, {size.x, size.y});
+
+	float aspectRatio = size.x / size.y;
+	m_camera.setAspectRatio(aspectRatio);
+	m_editorCamera.setAspectRatio(aspectRatio);
+
+	m_framebufferMultisampled->resize(size.x, size.y);
+	m_framebuffer->resize(size.x, size.y);
+}
+
 void Game::start() {
 	srand(time(NULL));
 
@@ -58,12 +70,29 @@ void Game::start() {
 			fpsCurrentTime = newTime;
 		}
 
-		onUpdate(deltaTime);
+		const glm::vec2 windowSize = m_window.getSize();
 
-		shadowPass();
+		if (m_fullscreen &&
+			m_framebufferMultisampled->getSize() != windowSize) {
+			resize(windowSize);
+		}
+
+		Camera* camera = &m_camera;
+
+		if (m_active) {
+			onUpdate(deltaTime);
+			m_camera.onUpdate(deltaTime);
+		} else {
+			m_editorCamera.onUpdate(deltaTime);
+			camera = &m_editorCamera;
+		}
+
+		shadowPass(*camera);
 		renderPass();
 
-		renderer.clear();
+		if (!m_fullscreen) {
+			renderer.clear();
+		}
 
 		m_imgui.onUpdate();
 		m_window.update();
@@ -137,7 +166,6 @@ void Game::onUpdate(float deltaTime) {
 			scene.getRegistry().destroy(entity);
 		});
 
-	m_camera.onUpdate(deltaTime);
 	scene.onUpdate(deltaTime);
 
 	scene.getRegistry().view<RigidBodyComponent, TransformComponent>().each(
@@ -169,9 +197,17 @@ void Game::onUpdate(float deltaTime) {
 
 			rigidDynamic.Body->setGlobalPose(physicsTransform);
 		});
+
+	scene.getRegistry()
+		.view<TransformComponent, PerspectiveCameraComponent>()
+		.each([&](auto rawEntity, TransformComponent& transform,
+				  PerspectiveCameraComponent& perspectiveCamera) {
+			m_camera.setPosition(transform.Position);
+			m_camera.setRotation(perspectiveCamera.Rotation);
+		});
 }
 
-void Game::shadowPass() {
+void Game::shadowPass(Camera& camera) {
 	Renderer& renderer = Renderer::getInstance();
 	Scene& scene = *m_scene;
 
@@ -188,15 +224,7 @@ void Game::shadowPass() {
 
 	Light mainLight(lightPosition, lightColour);
 
-	scene.getRegistry()
-		.view<TransformComponent, PerspectiveCameraComponent>()
-		.each([&](auto rawEntity, TransformComponent& transform,
-				  PerspectiveCameraComponent& perspectiveCamera) {
-			m_camera.setPosition(transform.Position);
-			m_camera.setRotation(perspectiveCamera.Rotation);
-		});
-
-	renderer.beginFrame(m_camera, mainLight);
+	renderer.beginFrame(camera, mainLight);
 
 	glCullFace(GL_FRONT);
 
@@ -287,7 +315,12 @@ void Game::renderPass() {
 			renderer.drawModel(request);
 		});
 
-	m_framebufferMultisampled->copy(*m_framebuffer);
+	if (m_fullscreen) {
+		m_framebufferMultisampled->copyToScreen();
+	} else {
+		m_framebufferMultisampled->copy(*m_framebuffer);
+	}
+
 	m_framebuffer->unbind();
 }
 

@@ -3,6 +3,10 @@
 
 #include "PlayerController.h"
 
+#include "MouseRotationCameraController.h"
+
+#include <glm/gtx/quaternion.hpp>
+
 namespace MattEngine {
 
 class FPSPlayerController : PlayerController {
@@ -13,12 +17,8 @@ public:
 private:
 	Entity m_entity;
 	float m_speed = 1.0f;
-	float m_rotationSpeed = 90.0f;
-	float m_lastMouseX = 0.0f;
-	float m_lastMouseY = 0.0f;
-	bool m_mouseMoved = false;
-	bool m_mouseEnabled = true;
-	glm::vec3 m_rotationEuler = {0.0f, 180.0f, 0.0f};
+	glm::quat m_rotation;
+	MouseRotationCameraController m_rotationController;
 };
 
 } // namespace MattEngine
