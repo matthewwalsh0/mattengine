@@ -56,8 +56,11 @@ include_directories(deps/physx/physx/snippets)
 
 # mattengine
 file(GLOB_RECURSE SOURCES "src/engine/**.cpp" "src/engine/**.h", "deps/stb_image/*.cpp", "deps/stb_image/*.h")
-include_directories(src/engine)
-include_directories(src/engine/components)
+include_directories(src/engine/core)
+include_directories(src/engine/entity)
+include_directories(src/engine/entity/components)
+include_directories(src/engine/renderer)
+include_directories(src/engine/renderer/camera)
 add_library(mattengine STATIC ${SOURCES} ${GLAD} ${IMGUI})
 target_link_libraries(mattengine glfw glm freetype assimp PhysXCharacterKinematic PhysXCommon PhysXCooking PhysXExtensions PhysXFoundation PhysXPvdSDK PhysXVehicle PhysX)
 
