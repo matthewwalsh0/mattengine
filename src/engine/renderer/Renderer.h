@@ -11,6 +11,8 @@
 
 #include <glm/gtx/quaternion.hpp>
 
+#include <vector>
+
 namespace MattEngine {
 
 class DrawCubeRequest {
@@ -34,6 +36,7 @@ public:
 	glm::vec3 Size = {1.0f, 1.0f, 1.0f};
 	glm::quat Rotation;
 	glm::vec3 Colour = {1.0f, 1.0f, 1.0f};
+	std::vector<glm::mat4> BoneTransforms;
 	bool DepthOnly = false;
 
 public:
@@ -74,6 +77,7 @@ private:
 		{0.1f, 50.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f});
 	unsigned int m_defaultTextureData[1] = {0xFFFFFF};
 	Texture m_defaultTexture = Texture(1, 1, 3, m_defaultTextureData);
+	std::vector<glm::mat4> m_defaultBoneTransforms;
 
 private:
 	inline static Renderer* s_instance;

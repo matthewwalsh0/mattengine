@@ -1,13 +1,19 @@
 #version 330 core
 
+const int MAX_BONES = 100;
+const int MAX_BONE_INFLUENCE = 4;
+
 layout(location = 0) in vec3 a_Position;
 layout(location = 1) in vec3 a_Normal;
 layout(location = 2) in vec2 a_TexturePosition;
+layout(location = 3) in ivec4 a_BoneIds;
+layout(location = 4) in vec4 a_BoneWeights;
 
 uniform mat4 u_View;
 uniform mat4 u_Model;
 uniform mat4 u_Projection;
 uniform mat4 u_LightSpaceMatrix;
+uniform mat4 u_BoneTransforms[MAX_BONES];
 
 out vec3 v_FragmentPosition;
 out vec4 v_FragmentPositionLightSpace;
@@ -16,8 +22,34 @@ out vec3 v_Normal;
 out mat4 v_Model;
 out vec2 v_TexturePosition;
 
+vec3 applyBoneTransforms(vec3 position) {
+	vec4 finalPosition = vec4(0.0f);
+
+	if (a_BoneIds == ivec4(-1, -1, -1, -1))
+		return position;
+
+	for (int boneIndex = 0; boneIndex < MAX_BONE_INFLUENCE; boneIndex++) {
+
+		if (a_BoneIds[boneIndex] == -1) {
+			continue;
+		}
+
+		if (a_BoneIds[boneIndex] > MAX_BONES) {
+			finalPosition = vec4(position, 1.0f);
+			break;
+		}
+
+		vec4 localPosition =
+			u_BoneTransforms[a_BoneIds[boneIndex]] * vec4(position, 1.0f);
+
+		finalPosition += localPosition * a_BoneWeights[boneIndex];
+	}
+
+	return vec3(finalPosition);
+}
+
 void main() {
-	v_Position = a_Position;
+	v_Position = applyBoneTransforms(a_Position);
 	v_Normal = mat3(transpose(inverse(u_Model))) * a_Normal;
 	v_Model = u_Model;
 	v_TexturePosition = a_TexturePosition;

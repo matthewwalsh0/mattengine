@@ -12,8 +12,11 @@ static unsigned int getAttributeTypeSize(int type) {
 	switch (type) {
 	case GL_FLOAT:
 		return sizeof(float);
+	case GL_INT:
+		return sizeof(int);
 	default:
-		MATTENGINE_ASSERT(false, "Unrecognised attribute type: %d", type);
+		MATTENGINE_ASSERT(
+			false, "Unrecognised attribute type in vertex array: %d", type);
 	}
 }
 
@@ -50,8 +53,15 @@ VertexArray::VertexArray(const void* data, unsigned int count,
 
 	for (auto& attribute : m_attributes) {
 		glEnableVertexAttribArray(attributeIndex);
-		glVertexAttribPointer(attributeIndex, attribute.Count, attribute.Type,
-			GL_FALSE, totalSize, (const void*)(intptr_t)offset);
+
+		if (attribute.Type == GL_FLOAT) {
+			glVertexAttribPointer(attributeIndex, attribute.Count,
+				attribute.Type, GL_FALSE, totalSize,
+				(const void*)(intptr_t)offset);
+		} else if (attribute.Type == GL_INT) {
+			glVertexAttribIPointer(attributeIndex, attribute.Count,
+				attribute.Type, totalSize, (const void*)(intptr_t)offset);
+		}
 
 		attributeIndex++;
 		offset += Utils::getAttributeTypeSize(attribute.Type) * attribute.Count;

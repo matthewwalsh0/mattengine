@@ -65,6 +65,20 @@ Texture::Texture(
 	m_textureId = Utils::generateTexture(width, height, channels, data);
 }
 
+Texture::Texture(void* data, int length) {
+
+	int channels;
+	stbi_set_flip_vertically_on_load(1);
+	stbi_uc* newData = stbi_load_from_memory(
+		(const stbi_uc*)data, length, &m_width, &m_height, &channels, 0);
+
+	MATTENGINE_ASSERT(newData, "Cannot load texture from memory.", NULL);
+
+	m_textureId = Utils::generateTexture(m_width, m_height, channels, newData);
+
+	stbi_image_free(newData);
+}
+
 Texture::Texture(unsigned int textureId) : m_textureId(textureId) {}
 
 void Texture::bind(unsigned int slot) const {

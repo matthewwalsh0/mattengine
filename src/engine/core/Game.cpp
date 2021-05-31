@@ -1,8 +1,10 @@
 #include "Game.h"
 
+#include "AnimationComponent.h"
 #include "ColourComponent.h"
 #include "DeleteComponent.h"
 #include "LightComponent.h"
+#include "Log.h"
 #include "Mesh.h"
 #include "ModelComponent.h"
 #include "PerspectiveCameraComponent.h"
@@ -205,6 +207,16 @@ void Game::onUpdate(float deltaTime) {
 			m_camera.setPosition(transform.Position);
 			m_camera.setRotation(perspectiveCamera.Rotation);
 		});
+
+	scene.getRegistry().view<AnimationComponent>().each(
+		[&](auto rawEntity, AnimationComponent& animation) {
+			if (!animation.Started) {
+				animation.Animator.playAnimation(*animation.Animation);
+				animation.Started = true;
+			}
+
+			animation.Animator.onUpdate(deltaTime);
+		});
 }
 
 void Game::shadowPass(Camera& camera) {
@@ -311,6 +323,15 @@ void Game::renderPass() {
 			request.Size = transform.Size;
 			request.Rotation = transform.Rotation;
 			request.Colour = colour.Colour;
+
+			Entity actualEntity = scene.createEntity(rawEntity);
+
+			if (actualEntity.hasComponent<AnimationComponent>()) {
+				AnimationComponent& animation =
+					actualEntity.getComponent<AnimationComponent>();
+
+				request.BoneTransforms = animation.Animator.getBoneTransforms();
+			}
 
 			renderer.drawModel(request);
 		});

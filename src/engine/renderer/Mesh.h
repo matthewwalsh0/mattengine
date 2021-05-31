@@ -15,6 +15,8 @@ struct Vertex {
 	glm::vec3 Position;
 	glm::vec3 Normal;
 	glm::vec2 TexturePosition;
+	int BoneIds[4];
+	float BoneWeights[4];
 };
 
 class Mesh {

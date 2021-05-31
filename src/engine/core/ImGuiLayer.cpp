@@ -1,5 +1,6 @@
 #include "ImGuiLayer.h"
 
+#include "AnimationComponent.h"
 #include "ColourComponent.h"
 #include "Game.h"
 #include "TransformComponent.h"
@@ -108,6 +109,26 @@ static void ComponentEditor(Entity& selectedEntity, bool newSelection) {
 			ImGui::ColorEdit3("Colour",
 				glm::value_ptr(
 					selectedEntity.getComponent<ColourComponent>().Colour));
+		}
+	}
+
+	if (selectedEntity.hasComponent<AnimationComponent>()) {
+		if (ImGui::CollapsingHeader(
+				"Animation", ImGuiTreeNodeFlags_DefaultOpen)) {
+
+			AnimationComponent& animation =
+				selectedEntity.getComponent<AnimationComponent>();
+
+			float currentTime = animation.Animator.getCurrentTime();
+			float duration = animation.Animation->Duration;
+			float ticksPerSecond = animation.Animation->TicksPerSecond;
+			auto bones = animation.Animation->BonesByName;
+			float boneCount = bones.size();
+
+			ImGui::DragFloat("Duration", &duration);
+			ImGui::DragFloat("Ticks Per Second", &ticksPerSecond);
+			ImGui::DragFloat("Current Time", &currentTime);
+			ImGui::DragFloat("Bone Count", &boneCount);
 		}
 	}
 

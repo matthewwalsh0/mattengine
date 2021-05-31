@@ -29,6 +29,11 @@ void Renderer::init() {
 	m_cube.reset(new VertexArray(Vertices::CUBE, 6 * 6, {}, 0,
 		{{GL_FLOAT, 3}, {GL_FLOAT, 3}, {GL_FLOAT, 2}}));
 
+	m_defaultBoneTransforms.reserve(100);
+
+	for (int i = 0; i < 100; i++)
+		m_defaultBoneTransforms.push_back(glm::mat4(1.0f));
+
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glEnable(GL_MULTISAMPLE);
@@ -50,6 +55,10 @@ void Renderer::beginFrame(Camera& camera, Light& light) {
 	m_shader.setMat4("u_LightSpaceMatrix", lightSpaceMatrix);
 	m_shader.setVec3("u_LightPosition", light.getPosition());
 	m_shader.setVec3("u_LightColour", light.getColour());
+
+	for (int i = 0; i < 100; ++i)
+		m_shader.setMat4("u_BoneTransforms[" + std::to_string(i) + "]",
+			m_defaultBoneTransforms[i]);
 
 	m_shaderShadow.bind();
 	m_shaderShadow.setMat4("u_LightSpaceMatrix", lightSpaceMatrix);
@@ -107,12 +116,29 @@ void Renderer::drawModel(DrawModelRequest& request) {
 		m_shader.bind();
 		m_shader.setMat4("u_Model", model);
 		m_shader.setVec3("u_Colour", request.Colour);
+
+		if (request.BoneTransforms.size() > 0) {
+			for (int i = 0; i < 100; ++i) {
+				m_shader.setMat4("u_BoneTransforms[" + std::to_string(i) + "]",
+					request.BoneTransforms[i]);
+			}
+		} else {
+			for (int i = 0; i < 100; ++i) {
+				m_shader.setMat4("u_BoneTransforms[" + std::to_string(i) + "]",
+					m_defaultBoneTransforms[i]);
+			}
+		}
 	}
 
 	for (unsigned int i = 0; i < request.Model.Meshes.size(); i++) {
 		Mesh& mesh = request.Model.Meshes[i];
 		mesh.VertexArray.bind();
-		mesh.Texture->bind();
+
+		if (mesh.Texture) {
+			mesh.Texture->bind();
+		} else {
+			m_defaultTexture.bind();
+		}
 
 		glDrawElements(
 			GL_TRIANGLES, mesh.VertexArray.IndexCount, GL_UNSIGNED_INT, 0);
