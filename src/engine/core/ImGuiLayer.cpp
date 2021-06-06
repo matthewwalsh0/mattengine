@@ -81,6 +81,17 @@ static void PerspectiveCamera(PerspectiveCamera& camera) {
 	ImGuiCustom::QuatRotation(rotation, rotationEulerDegrees, true);
 }
 
+static void Bone(MattEngine::Bone& bone) {
+	if (ImGui::TreeNode(bone.Name.c_str())) {
+
+		for (auto& childBone : bone.Children) {
+			Bone(*childBone);
+		}
+
+		ImGui::TreePop();
+	}
+}
+
 static void ComponentEditor(Entity& selectedEntity, bool newSelection) {
 	if (!selectedEntity)
 		return;
@@ -122,13 +133,15 @@ static void ComponentEditor(Entity& selectedEntity, bool newSelection) {
 			float currentTime = animation.Animator.getCurrentTime();
 			float duration = animation.Animation->Duration;
 			float ticksPerSecond = animation.Animation->TicksPerSecond;
-			auto bones = animation.Animation->BonesByName;
-			float boneCount = bones.size();
 
 			ImGui::DragFloat("Duration", &duration);
 			ImGui::DragFloat("Ticks Per Second", &ticksPerSecond);
 			ImGui::DragFloat("Current Time", &currentTime);
-			ImGui::DragFloat("Bone Count", &boneCount);
+
+			if (ImGui::TreeNode("Skeleton")) {
+				Bone(*animation.Animation->Skeleton);
+				ImGui::TreePop();
+			}
 		}
 	}
 

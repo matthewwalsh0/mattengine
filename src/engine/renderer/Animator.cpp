@@ -68,13 +68,14 @@ static float getScaleFactor(
 
 static glm::mat4 interpolatePosition(
 	float animationTime, BoneAnimation& boneAnimation) {
+	int positionSize = boneAnimation.Positions.size();
 
-	if (1 == boneAnimation.PositionCount)
+	if (1 == positionSize)
 		return glm::translate(
 			glm::mat4(1.0f), boneAnimation.Positions[0].Position);
 
 	int p0Index = getPositionIndex(animationTime, boneAnimation.Positions);
-	int p1Index = p0Index == boneAnimation.PositionCount - 1 ? 0 : p0Index + 1;
+	int p1Index = p0Index == positionSize - 1 ? 0 : p0Index + 1;
 
 	float scaleFactor =
 		getScaleFactor(boneAnimation.Positions[p0Index].Timestamp,
@@ -89,14 +90,15 @@ static glm::mat4 interpolatePosition(
 
 static glm::mat4 interpolateRotation(
 	float animationTime, BoneAnimation& boneAnimation) {
+	int rotationCount = boneAnimation.Rotations.size();
 
-	if (1 == boneAnimation.RotationCount) {
+	if (1 == rotationCount) {
 		auto rotation = glm::normalize(boneAnimation.Rotations[0].Orientation);
 		return glm::toMat4(rotation);
 	}
 
 	int p0Index = getRotationIndex(animationTime, boneAnimation.Rotations);
-	int p1Index = p0Index == boneAnimation.RotationCount - 1 ? 0 : p0Index + 1;
+	int p1Index = p0Index == rotationCount - 1 ? 0 : p0Index + 1;
 
 	float scaleFactor =
 		getScaleFactor(boneAnimation.Rotations[p0Index].Timestamp,
@@ -111,12 +113,13 @@ static glm::mat4 interpolateRotation(
 
 static glm::mat4 interpolateScale(
 	float animationTime, BoneAnimation& boneAnimation) {
+	int scaleCount = boneAnimation.Scales.size();
 
-	if (1 == boneAnimation.ScaleCount)
+	if (1 == scaleCount)
 		return glm::scale(glm::mat4(1.0f), boneAnimation.Scales[0].Scale);
 
 	int p0Index = getScaleIndex(animationTime, boneAnimation.Scales);
-	int p1Index = p0Index == boneAnimation.ScaleCount - 1 ? 0 : p0Index + 1;
+	int p1Index = p0Index == scaleCount - 1 ? 0 : p0Index + 1;
 
 	float scaleFactor = getScaleFactor(boneAnimation.Scales[p0Index].Timestamp,
 		boneAnimation.Scales[p1Index].Timestamp, animationTime);
@@ -128,12 +131,12 @@ static glm::mat4 interpolateScale(
 }
 
 static void updateBoneTransform(float animationTime, Animation& animation,
-	const AnimationNode& node, glm::mat4 parentTransform,
-	std::vector<glm::mat4>& boneTransforms, glm::mat4 inverse) {
+	const Bone& bone, glm::mat4 parentTransform,
+	std::vector<glm::mat4>& boneTransforms) {
 
-	std::string boneName = node.BoneName;
-	glm::mat4 boneTransform = node.Transform;
-	BoneAnimation* boneAnimation = Utils::getBoneAnimation(animation, boneName);
+	glm::mat4 boneTransform = bone.DefaultTransform;
+	BoneAnimation* boneAnimation =
+		Utils::getBoneAnimation(animation, bone.Name);
 
 	if (boneAnimation) {
 		glm::mat4 translation =
@@ -149,18 +152,11 @@ static void updateBoneTransform(float animationTime, Animation& animation,
 	}
 
 	glm::mat4 globalTransformation = parentTransform * boneTransform;
+	boneTransforms[bone.Id] = globalTransformation * bone.ModelToLocalTransform;
 
-	auto bonesByName = animation.BonesByName;
-
-	if (bonesByName.find(boneName) != bonesByName.end()) {
-		int boneId = bonesByName[boneName].Id;
-		glm::mat4 offset = bonesByName[boneName].ModelToLocalTransform;
-		boneTransforms[boneId] = globalTransformation * offset;
-	}
-
-	for (int childIndex = 0; childIndex < node.ChildrenCount; childIndex++)
-		updateBoneTransform(animationTime, animation, node.Children[childIndex],
-			globalTransformation, boneTransforms, inverse);
+	for (int childIndex = 0; childIndex < bone.Children.size(); childIndex++)
+		updateBoneTransform(animationTime, animation,
+			*(bone.Children[childIndex]), globalTransformation, boneTransforms);
 }
 
 } // namespace Utils
@@ -181,8 +177,7 @@ void Animator::onUpdate(float deltaTime) {
 	m_currentTime = fmod(m_currentTime, m_animation->Duration);
 
 	Utils::updateBoneTransform(m_currentTime, *m_animation,
-		m_animation->RootNode, glm::mat4(1.0f), m_boneTransforms,
-		glm::inverse(m_animation->RootNode.Transform));
+		*m_animation->Skeleton, glm::mat4(1.0f), m_boneTransforms);
 }
 
 void Animator::playAnimation(Animation& animation) {

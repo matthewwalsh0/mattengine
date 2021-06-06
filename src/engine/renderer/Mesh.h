@@ -6,6 +6,7 @@
 
 #include <glm/glm.hpp>
 
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -22,11 +23,11 @@ struct Vertex {
 class Mesh {
 public:
 	VertexArray VertexArray;
-	Texture* Texture = nullptr;
+	std::optional<Texture> Texture;
 
 public:
 	Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices,
-		MattEngine::Texture* texture);
+		std::optional<MattEngine::Texture> texture);
 };
 } // namespace MattEngine
 

@@ -38,7 +38,7 @@ private:
 	void invalidate();
 
 public:
-	glm::vec3 m_position = {0.0f, 1.0f, 11.0f};
+	glm::vec3 m_position = {0.0f, 1.0f, 7.5f};
 	glm::quat m_rotation =
 		glm::quat(glm::vec3(0.0f, glm::radians(180.0f), 0.0f));
 	glm::vec3 m_forward = {0.0f, 0.0f, -1.0f};
