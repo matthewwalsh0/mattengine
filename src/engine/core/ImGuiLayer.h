@@ -11,7 +11,7 @@ namespace MattEngine {
 class ImGuiLayer : public Layer {
 public:
 	void onInit() override;
-	void onUpdate() override;
+	void onAfterRender() override;
 
 private:
 	bool m_gameMode = false;

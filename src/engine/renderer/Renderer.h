@@ -58,10 +58,15 @@ class Renderer {
 public:
 	void init();
 	void beginFrame(Camera& camera, Light& light);
+	void beginShadowFrame(Camera& camera, Camera& shadowCamera,
+		float depthMapFarPlane, int depthMapIndex);
 	void drawCube(DrawCubeRequest& request);
 	void drawModel(DrawModelRequest& request);
 	void drawLight(DrawLightRequest& request);
 	void drawSkybox(CubeMap& cubeMap);
+	void drawRawTriangles(
+		const std::vector<glm::vec3>& positions, const glm::vec3& colour);
+	void drawCameraBounds(Camera& camera, const glm::vec3& colour);
 	void clear(const glm::vec3& colour = {0.0f, 0.0f, 0.0f});
 	void setViewport(const glm::vec2& start, const glm::vec2& size);
 
@@ -72,6 +77,7 @@ private:
 	Shader m_shader = Shader("assets/shaders/core.glsl");
 	Shader m_shaderSkybox = Shader("assets/shaders/skybox.glsl");
 	Shader m_shaderShadow = Shader("assets/shaders/shadow.glsl");
+	Shader m_shaderRawTriangle = Shader("assets/shaders/rawTriangle.glsl");
 	std::shared_ptr<VertexArray> m_cube;
 	OrthoCamera m_shadowCamera = OrthoCamera({-5.0f, 5.0f, -5.0f, 5.0f},
 		{0.1f, 50.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f});

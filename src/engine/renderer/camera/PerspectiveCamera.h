@@ -2,17 +2,23 @@
 #define PERSPECTIVE_CAMERA_H
 
 #include "Camera.h"
+#include "Scene.h"
 
 #include "FlyCameraController.h"
+#include "OrthoCamera.h"
 
 #include <glm/gtx/quaternion.hpp>
+
+#include <vector>
 
 namespace MattEngine {
 
 class PerspectiveCamera : public Camera {
 public:
 	PerspectiveCamera();
+	PerspectiveCamera(float nearPlane, float farPlane);
 	void onUpdate(float deltaTime) override;
+	OrthoCamera getBoundingOrtho(const glm::vec3& viewDirection, Scene& scene);
 
 	const glm::mat4& getProjection() override { return m_projection; };
 	const glm::mat4& getView() override { return m_view; };
@@ -46,6 +52,8 @@ public:
 	glm::mat4 m_projection;
 	glm::mat4 m_view;
 	float m_angle = 45.0f;
+	float m_nearPlane = 0.01f;
+	float m_farPlane = 1000.0f;
 	float m_aspectRatio = 1.0f;
 	float m_speed = 30.0f;
 	FlyCameraController m_controller;

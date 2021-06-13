@@ -11,6 +11,7 @@
 #include "Renderer.h"
 #include "Scene.h"
 #include "Shader.h"
+#include "ShadowLayer.h"
 #include "TransformComponent.h"
 #include "Window.h"
 
@@ -39,10 +40,12 @@ public:
 	Framebuffer* getFramebufferMultisampled() {
 		return m_framebufferMultisampled;
 	}
-	Framebuffer* getDepthMap() { return m_depthMap; }
 	std::shared_ptr<Scene> getScene() { return m_scene; }
 	PerspectiveCamera& getCamera() { return m_camera; }
 	PerspectiveCamera& getEditorCamera() { return m_editorCamera; }
+	PerspectiveCamera& getCurrentCamera() {
+		return m_active ? m_camera : m_editorCamera;
+	}
 	Physics& getPhysics() { return m_physics; }
 
 	void play() { m_active = true; }
@@ -53,8 +56,7 @@ public:
 
 private:
 	void onUpdate(float deltaTime);
-	void shadowPass(Camera& camera);
-	void renderPass();
+	void renderPass(Camera& camera);
 
 public:
 	inline static Game& getInstance() { return *s_instance; }
@@ -63,14 +65,13 @@ private:
 	inline static Game* s_instance;
 
 private:
+	std::vector<std::unique_ptr<Layer>> m_layers;
 	Window& m_window;
 	float m_fps;
 	std::string m_title;
 	std::shared_ptr<Scene> m_scene;
 	Framebuffer* m_framebuffer = nullptr;
 	Framebuffer* m_framebufferMultisampled = nullptr;
-	Framebuffer* m_depthMap = nullptr;
-	ImGuiLayer m_imgui;
 	PerspectiveCamera m_camera = PerspectiveCamera();
 	PerspectiveCamera m_editorCamera = PerspectiveCamera();
 	Physics m_physics;

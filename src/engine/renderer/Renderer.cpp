@@ -1,6 +1,8 @@
 #include "Renderer.h"
 
+#include "Game.h"
 #include "Log.h"
+#include "PerspectiveCamera.h"
 #include "VertexArray.h"
 #include "Vertices.h"
 
@@ -41,18 +43,13 @@ void Renderer::init() {
 }
 
 void Renderer::beginFrame(Camera& camera, Light& light) {
-	m_shadowCamera.setPosition(light.getPosition());
-	glm::mat4 lightSpaceMatrix = m_shadowCamera.getProjectionView();
-
 	m_shader.bind();
 	m_shader.setMat4("u_View", camera.getView());
 	m_shader.setMat4("u_Projection", camera.getProjection());
 	m_shader.setVec3("u_ViewPosition", camera.getPosition());
 	m_shader.setVec3("u_Colour", glm::vec3(1.0f, 1.0f, 1.0f));
 	m_shader.setInt("u_Texture", 0);
-	m_shader.setInt("u_ShadowMap", 1);
 	m_shader.setInt("u_TileCount", 1);
-	m_shader.setMat4("u_LightSpaceMatrix", lightSpaceMatrix);
 	m_shader.setVec3("u_LightPosition", light.getPosition());
 	m_shader.setVec3("u_LightColour", light.getColour());
 
@@ -60,13 +57,33 @@ void Renderer::beginFrame(Camera& camera, Light& light) {
 		m_shader.setMat4("u_BoneTransforms[" + std::to_string(i) + "]",
 			m_defaultBoneTransforms[i]);
 
-	m_shaderShadow.bind();
-	m_shaderShadow.setMat4("u_LightSpaceMatrix", lightSpaceMatrix);
-
 	m_shaderSkybox.bind();
 	m_shaderSkybox.setMat4("u_View", camera.getView());
 	m_shaderSkybox.setMat4("u_Projection", camera.getProjection());
 	m_shaderSkybox.setInt("u_Texture", 0);
+
+	m_shaderRawTriangle.bind();
+	m_shaderRawTriangle.setMat4("u_View", camera.getView());
+	m_shaderRawTriangle.setMat4("u_Projection", camera.getProjection());
+}
+
+void Renderer::beginShadowFrame(Camera& camera, Camera& shadowCamera,
+	float depthMapFarPlane, int depthMapIndex) {
+	glm::mat4 lightSpaceMatrix = shadowCamera.getProjectionView();
+
+	m_shader.bind();
+	m_shader.setInt(
+		"u_DepthMap[" + std::to_string(depthMapIndex) + "]", depthMapIndex + 1);
+	m_shader.setVec3(
+		"u_DepthMapFarPlane[" + std::to_string(depthMapIndex) + "]",
+		camera.getProjection() *
+			glm::vec4(0.0f, 0.0f, -1 * depthMapFarPlane, 1.0f));
+	m_shader.setMat4(
+		"u_LightSpaceMatrix[" + std::to_string(depthMapIndex) + "]",
+		lightSpaceMatrix);
+
+	m_shaderShadow.bind();
+	m_shaderShadow.setMat4("u_LightSpaceMatrix", lightSpaceMatrix);
 }
 
 void Renderer::clear(const glm::vec3& colour) {
@@ -171,6 +188,52 @@ void Renderer::drawSkybox(CubeMap& cubeMap) {
 	glDepthMask(GL_FALSE);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 	glDepthMask(GL_TRUE);
+}
+
+void Renderer::drawRawTriangles(
+	const std::vector<glm::vec3>& positions, const glm::vec3& colour) {
+	VertexArray vertexArray(
+		positions.data(), positions.size(), {}, 0, {{GL_FLOAT, 3}});
+
+	vertexArray.bind();
+	m_shaderRawTriangle.bind();
+	m_shaderRawTriangle.setVec3("u_Colour", colour);
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glDrawArrays(GL_TRIANGLES, 0, positions.size());
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}
+
+void Renderer::drawCameraBounds(Camera& camera, const glm::vec3& colour) {
+	const std::vector<glm::vec3>& cameraBounds = camera.getBounds();
+
+	// clang-format off
+	drawRawTriangles({
+		// Front
+		cameraBounds[0], cameraBounds[1], cameraBounds[2],
+		cameraBounds[0], cameraBounds[2], cameraBounds[3],
+		
+		// Right
+		cameraBounds[3], cameraBounds[2], cameraBounds[6],
+		cameraBounds[3], cameraBounds[6], cameraBounds[7],
+
+		// Back
+		cameraBounds[4], cameraBounds[5], cameraBounds[6],
+		cameraBounds[4], cameraBounds[6], cameraBounds[7],
+
+		// Top
+		cameraBounds[2], cameraBounds[1], cameraBounds[5],
+		cameraBounds[2], cameraBounds[5], cameraBounds[6],
+
+		// Left
+		cameraBounds[0], cameraBounds[1], cameraBounds[5],
+		cameraBounds[0], cameraBounds[5], cameraBounds[4],
+		
+		// Bottom
+		cameraBounds[3], cameraBounds[0], cameraBounds[4],
+		cameraBounds[3], cameraBounds[4], cameraBounds[7],
+	}, colour);
+	/// clang-format on
 }
 
 } // namespace MattEngine

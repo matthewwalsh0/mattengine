@@ -25,6 +25,9 @@ const float UPDATE_DELTA = 1.0f / 60;
 
 Game::Game(Window& window) : m_window(window), m_title(window.getTitle()) {
 	s_instance = this;
+
+	m_layers.emplace_back(new ShadowLayer());
+	m_layers.emplace_back(new ImGuiLayer());
 }
 
 void Game::resize(const glm::vec2& size) {
@@ -45,8 +48,11 @@ void Game::start() {
 	MattEngine::Renderer renderer;
 
 	renderer.init();
-	m_imgui.onInit();
 	m_physics.init();
+
+	for (auto& layer : m_layers)
+		(*layer).onInit();
+
 	onInit();
 
 	float currentTime = glfwGetTime();
@@ -56,7 +62,6 @@ void Game::start() {
 	m_framebufferMultisampled =
 		new MattEngine::Framebuffer(640, 480, true, true, 4);
 	m_framebuffer = new MattEngine::Framebuffer(640, 480);
-	m_depthMap = new Framebuffer(1024, 1024, true, true);
 
 	while (m_window.isOpen()) {
 		float newTime = glfwGetTime();
@@ -84,19 +89,26 @@ void Game::start() {
 		if (m_active) {
 			onUpdate(deltaTime);
 			m_camera.onUpdate(deltaTime);
+
+			for (auto& layer : m_layers)
+				(*layer).onUpdate();
 		} else {
 			m_editorCamera.onUpdate(deltaTime);
 			camera = &m_editorCamera;
 		}
 
-		shadowPass(*camera);
-		renderPass();
+		for (auto& layer : m_layers)
+			(*layer).onBeforeRender();
+
+		renderPass(*camera);
 
 		if (!m_fullscreen) {
 			renderer.clear();
 		}
 
-		m_imgui.onUpdate();
+		for (auto& layer : m_layers)
+			(*layer).onAfterRender();
+
 		m_window.update();
 
 		frameCount += 1;
@@ -219,16 +231,13 @@ void Game::onUpdate(float deltaTime) {
 		});
 }
 
-void Game::shadowPass(Camera& camera) {
+void Game::renderPass(Camera& camera) {
 	Renderer& renderer = Renderer::getInstance();
 	Scene& scene = *m_scene;
 
-	m_depthMap->bind();
+	m_framebufferMultisampled->bind();
 
-	renderer.setViewport({0.0f, 0.0f}, {1024.0f, 1024.0f});
-	renderer.clear({1.0f, 1.0f, 1.0f});
-
-	Entity light = m_scene->getEntity("Light");
+	Entity light = scene.getEntity("Light");
 
 	glm::vec3& lightPosition =
 		light.getComponent<TransformComponent>().Position;
@@ -238,50 +247,10 @@ void Game::shadowPass(Camera& camera) {
 
 	renderer.beginFrame(camera, mainLight);
 
-	glCullFace(GL_FRONT);
-
-	scene.getRegistry()
-		.view<TransformComponent, ColourComponent, TextureComponent>()
-		.each([&](auto rawEntity, TransformComponent& transform,
-				  ColourComponent& colour, TextureComponent& texture) {
-			DrawCubeRequest request;
-			request.Position = transform.Position;
-			request.Size = transform.Size;
-			request.Rotation = transform.Rotation;
-			request.DepthOnly = true;
-
-			renderer.drawCube(request);
-		});
-
-	scene.getRegistry().view<TransformComponent, ModelComponent>().each(
-		[&](auto rawEntity, TransformComponent& transform,
-			ModelComponent& model) {
-			DrawModelRequest request(model.Model);
-			request.Position = transform.Position;
-			request.Size = transform.Size;
-			request.Rotation = transform.Rotation;
-			request.DepthOnly = true;
-
-			renderer.drawModel(request);
-		});
-
-	glCullFace(GL_BACK);
-
-	m_depthMap->unbind();
-}
-
-void Game::renderPass() {
-	Renderer& renderer = Renderer::getInstance();
-	Scene& scene = *m_scene;
-
-	m_framebufferMultisampled->bind();
-
 	renderer.setViewport(
 		{0.0f, 0.0f}, {m_framebuffer->getWidth(), m_framebuffer->getHeight()});
 
 	renderer.clear();
-
-	Texture(m_depthMap->getDepthTextureId()).bind(1);
 
 	scene.getRegistry().view<SkyBoxComponent>().each(
 		[&](SkyBoxComponent& skyBox) { renderer.drawSkybox(skyBox.CubeMap); });

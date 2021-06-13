@@ -2,6 +2,7 @@
 
 #include "AnimationComponent.h"
 #include "ColourComponent.h"
+#include "Framebuffer.h"
 #include "Game.h"
 #include "TransformComponent.h"
 #include "Window.h"
@@ -185,7 +186,7 @@ void ImGuiLayer::onInit() {
 	ImGui_ImplOpenGL3_Init("#version 330 core");
 }
 
-void ImGuiLayer::onUpdate() {
+void ImGuiLayer::onAfterRender() {
 	Game& game = Game::getInstance();
 	Window& window = Window::getInstance();
 
@@ -234,13 +235,6 @@ void ImGuiLayer::onUpdate() {
 	Renderer& renderer = Renderer::getInstance();
 
 	ImGuiCustom::GameViewport(game, renderer, m_viewportSize);
-
-	ImGui::Begin("Depth Map", NULL, ImGuiWindowFlags_NoScrollbar);
-	ImVec2 screenSize = ImGui::GetContentRegionAvail();
-	ImGui::Image(
-		ImTextureID((void*)(uintptr_t)game.getDepthMap()->getColourTextureId()),
-		ImVec2(screenSize.x, screenSize.y), ImVec2(0, 1), ImVec2(1, 0));
-	ImGui::End();
 
 	ImGui::PopStyleVar();
 	ImGui::Begin("Performance");
