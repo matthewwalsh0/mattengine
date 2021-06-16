@@ -68,7 +68,8 @@ void Renderer::beginFrame(Camera& camera, Light& light) {
 }
 
 void Renderer::beginShadowFrame(Camera& camera, Camera& shadowCamera,
-	float depthMapFarPlane, int depthMapIndex) {
+	int depthMapIndex, float depthMapFarPlane,
+	glm::vec3 cascadeIndicatorColour) {
 	glm::mat4 lightSpaceMatrix = shadowCamera.getProjectionView();
 
 	m_shader.bind();
@@ -81,6 +82,8 @@ void Renderer::beginShadowFrame(Camera& camera, Camera& shadowCamera,
 	m_shader.setMat4(
 		"u_LightSpaceMatrix[" + std::to_string(depthMapIndex) + "]",
 		lightSpaceMatrix);
+	m_shader.setVec3("u_DepthMapColour[" + std::to_string(depthMapIndex) + "]",
+		cascadeIndicatorColour);
 
 	m_shaderShadow.bind();
 	m_shaderShadow.setMat4("u_LightSpaceMatrix", lightSpaceMatrix);

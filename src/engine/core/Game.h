@@ -47,6 +47,7 @@ public:
 		return m_active ? m_camera : m_editorCamera;
 	}
 	Physics& getPhysics() { return m_physics; }
+	ShadowLayer& getShadows() { return ((ShadowLayer&)*(m_layers[0])); }
 
 	void play() { m_active = true; }
 	void pause() { m_active = false; }

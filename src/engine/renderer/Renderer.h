@@ -59,7 +59,8 @@ public:
 	void init();
 	void beginFrame(Camera& camera, Light& light);
 	void beginShadowFrame(Camera& camera, Camera& shadowCamera,
-		float depthMapFarPlane, int depthMapIndex);
+		int depthMapIndex, float depthMapFarPlane,
+		glm::vec3 cascadeIndicatorColour);
 	void drawCube(DrawCubeRequest& request);
 	void drawModel(DrawModelRequest& request);
 	void drawLight(DrawLightRequest& request);

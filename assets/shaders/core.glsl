@@ -79,6 +79,7 @@ uniform vec3 u_ViewPosition;
 uniform sampler2D u_Texture;
 uniform sampler2D u_DepthMap[DEPTH_MAP_COUNT];
 uniform vec3 u_DepthMapFarPlane[DEPTH_MAP_COUNT];
+uniform vec3 u_DepthMapColour[DEPTH_MAP_COUNT];
 uniform mat4 u_LightSpaceMatrix[DEPTH_MAP_COUNT];
 
 in vec3 v_Normal;
@@ -108,7 +109,7 @@ vec3 calculateLight() {
 	return ambient + diffuse + specular;
 }
 
-vec3 calculateShadow() {
+vec4 calculateShadow() {
 	int depthMapIndex = v_PositionClip.z <= u_DepthMapFarPlane[0].z	  ? 0
 						: v_PositionClip.z <= u_DepthMapFarPlane[1].z ? 1
 						: v_PositionClip.z <= u_DepthMapFarPlane[2].z ? 2
@@ -130,25 +131,23 @@ vec3 calculateShadow() {
 			? SHADOW_COLOUR
 			: 1.0;
 
-	return vec3(shadow, shadow, shadow);
+	vec3 indicator = u_DepthMapColour[depthMapIndex];
+
+	return vec4(shadow, shadow, shadow, 1.0) * vec4(indicator, 1.0);
 }
 
 void main() {
-	vec3 finalColour = u_Colour;
-	float alpha = 1.0;
+	vec4 finalColour = vec4(u_Colour, 1.0);
 
 	if (!u_IsLight) {
-		vec3 lightFactor = calculateLight();
-		vec3 shadowFactor = calculateShadow();
+		vec4 lightFactor = vec4(calculateLight(), 1.0);
+		vec4 shadowFactor = calculateShadow();
 
 		vec4 textureColour =
 			texture(u_Texture, v_TexturePosition * u_TileCount);
 
-		finalColour =
-			shadowFactor * lightFactor * vec3(textureColour) * u_Colour;
-
-		alpha = textureColour.a;
+		finalColour = shadowFactor * lightFactor * textureColour * finalColour;
 	}
 
-	color = vec4(finalColour, alpha);
+	color = finalColour;
 }

@@ -8,12 +8,16 @@
 #include "Scene.h"
 #include "TextureComponent.h"
 
+#include <glm/gtx/color_space.hpp>
+
 namespace MattEngine {
 
 void ShadowLayer::onInit() {
-	for (int depthMapIndex = 0; depthMapIndex < m_depthMapCount;
+	m_depthMaps.clear();
+
+	for (int depthMapIndex = 0; depthMapIndex < DepthMapCount;
 		 depthMapIndex++) {
-		int size = m_depthMapSizes[depthMapIndex];
+		int size = DepthMapSizes[depthMapIndex];
 		Framebuffer depthMap(size, size, true, true);
 		m_depthMaps.push_back(depthMap);
 	}
@@ -30,7 +34,7 @@ void ShadowLayer::onBeforeRender() {
 	glm::vec3& lightPosition =
 		light.getComponent<TransformComponent>().Position;
 
-	for (int depthMapIndex = 0; depthMapIndex < m_depthMapCount;
+	for (int depthMapIndex = 0; depthMapIndex < DepthMapCount;
 		 depthMapIndex++) {
 		Framebuffer& depthMap = m_depthMaps[depthMapIndex];
 		depthMap.bind();
@@ -41,52 +45,64 @@ void ShadowLayer::onBeforeRender() {
 			{0.0f, 0.0f}, {depthMap.getWidth(), depthMap.getHeight()});
 		renderer.clear({1.0f, 1.0f, 1.0f});
 
-		float nearPlane = 0.01f;
-		float farPlane = m_depthMapFarPlanes[depthMapIndex];
+		if (Enabled) {
+			float nearPlane = 0.01f;
+			float farPlane = DepthMapFarPlanes[depthMapIndex];
 
-		PerspectiveCamera gameCamera(nearPlane, farPlane);
-		gameCamera.setPosition(camera.getPosition());
-		gameCamera.setRotation(((PerspectiveCamera&)camera).getRotation());
+			PerspectiveCamera gameCamera(nearPlane, farPlane);
+			gameCamera.setPosition(camera.getPosition());
+			gameCamera.setRotation(((PerspectiveCamera&)camera).getRotation());
 
-		OrthoCamera shadowCamera =
-			gameCamera.getBoundingOrtho(lightPosition, scene);
+			OrthoCamera shadowCamera =
+				gameCamera.getBoundingOrtho(lightPosition, scene);
 
-		renderer.beginShadowFrame(
-			camera, shadowCamera, farPlane, depthMapIndex);
+			glm::vec3 cascadeIndicatorColour = {1.0f, 1.0f, 1.0f};
 
-		glCullFace(GL_FRONT);
+			if (CascadeIndicatorsEnabled) {
+				glm::vec3 cascadeIndicatorColourHSV = {
+					(360 / DepthMapCount) * (depthMapIndex + 1), 1.0, 1.0};
 
-		scene.getRegistry()
-			.view<TransformComponent, ColourComponent, TextureComponent,
-				TagComponent>()
-			.each([&](auto rawEntity, TransformComponent& transform,
-					  ColourComponent& colour, TextureComponent& texture,
-					  TagComponent& tag) {
-				DrawCubeRequest request;
-				request.Position = transform.Position;
-				request.Size = transform.Size;
-				request.Rotation = transform.Rotation;
-				request.DepthOnly = true;
+				cascadeIndicatorColour =
+					rgbColor(cascadeIndicatorColourHSV) * 0.2f + 0.8f;
+			}
 
-				if (tag.Tag != "Floor") {
+			renderer.beginShadowFrame(camera, shadowCamera, depthMapIndex,
+				farPlane, cascadeIndicatorColour);
 
-					renderer.drawCube(request);
-				}
-			});
+			glCullFace(GL_FRONT);
 
-		scene.getRegistry().view<TransformComponent, ModelComponent>().each(
-			[&](auto rawEntity, TransformComponent& transform,
-				ModelComponent& model) {
-				DrawModelRequest request(model.Model);
-				request.Position = transform.Position;
-				request.Size = transform.Size;
-				request.Rotation = transform.Rotation;
-				request.DepthOnly = true;
+			scene.getRegistry()
+				.view<TransformComponent, ColourComponent, TextureComponent,
+					TagComponent>()
+				.each([&](auto rawEntity, TransformComponent& transform,
+						  ColourComponent& colour, TextureComponent& texture,
+						  TagComponent& tag) {
+					DrawCubeRequest request;
+					request.Position = transform.Position;
+					request.Size = transform.Size;
+					request.Rotation = transform.Rotation;
+					request.DepthOnly = true;
 
-				renderer.drawModel(request);
-			});
+					if (tag.Tag != "Floor") {
 
-		glCullFace(GL_BACK);
+						renderer.drawCube(request);
+					}
+				});
+
+			scene.getRegistry().view<TransformComponent, ModelComponent>().each(
+				[&](auto rawEntity, TransformComponent& transform,
+					ModelComponent& model) {
+					DrawModelRequest request(model.Model);
+					request.Position = transform.Position;
+					request.Size = transform.Size;
+					request.Rotation = transform.Rotation;
+					request.DepthOnly = true;
+
+					renderer.drawModel(request);
+				});
+
+			glCullFace(GL_BACK);
+		}
 
 		depthMap.unbind();
 	}
