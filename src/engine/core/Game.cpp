@@ -13,6 +13,7 @@
 #include "SkyBoxComponent.h"
 #include "TextComponent.h"
 #include "TextureComponent.h"
+#include "TextureStore.h"
 #include "Timer.h"
 #include "TransformComponent.h"
 
@@ -277,7 +278,8 @@ void Game::renderPass(Camera& camera) {
 			request.Size = transform.Size;
 			request.Rotation = transform.Rotation;
 			request.Colour = colour.Colour;
-			request.Texture = &texture.Texture;
+			request.Texture =
+				&TextureStore::getInstance().getTexture(texture.Path);
 			request.TileCount = texture.TileCount;
 
 			renderer.drawCube(request);

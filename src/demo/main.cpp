@@ -18,12 +18,6 @@ private:
 	MattEngine::Model m_model =
 		MattEngine::Model("assets/models/dance/dance.fbx", false);
 
-	MattEngine::Texture m_texture =
-		MattEngine::Texture("assets/textures/wood.jpg");
-
-	MattEngine::Texture m_textureFloor =
-		MattEngine::Texture("assets/textures/floor.png");
-
 	float m_lightDirection = 1.0f;
 
 public:
@@ -33,7 +27,7 @@ public:
 		cube.addComponent<TransformComponent>(
 			glm::vec3(-1.0f, 0.5f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 		cube.addComponent<ColourComponent>(glm::vec3(1.0f, 1.0f, 1.0f));
-		cube.addComponent<TextureComponent>(m_texture);
+		cube.addComponent<TextureComponent>("assets/textures/wood.jpg");
 
 		MattEngine::Entity model = createEntity();
 		model.addComponent<TagComponent>("Dance");
@@ -55,7 +49,7 @@ public:
 		floor.addComponent<TransformComponent>(
 			glm::vec3(0.0f, -3.0f, 0.0f), glm::vec3(100.0f, 0.01f, 100.0f));
 		floor.addComponent<ColourComponent>(glm::vec3(1.0f, 1.0f, 1.0f));
-		floor.addComponent<TextureComponent>(m_textureFloor, 50);
+		floor.addComponent<TextureComponent>("assets/textures/floor.png", 50);
 
 		MattEngine::Entity skybox = createEntity();
 		skybox.addComponent<SkyBoxComponent>("assets/textures/skybox");

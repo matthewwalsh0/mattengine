@@ -13,12 +13,6 @@ using namespace MattEngine;
 class DemoScene : public MattEngine::Scene {
 
 private:
-	MattEngine::Texture m_texture =
-		MattEngine::Texture("assets/textures/wood.jpg");
-
-	MattEngine::Texture m_textureFloor =
-		MattEngine::Texture("assets/textures/floor.png");
-
 	FPSPlayerController m_playerController;
 
 private:
@@ -34,7 +28,7 @@ private:
 						y * boxSize + (boxSize / 2), 0.0f),
 					glm::vec3(boxSize, boxSize, boxSize));
 				box.addComponent<ColourComponent>(glm::vec3(1.0f, 1.0f, 1.0f));
-				box.addComponent<TextureComponent>(m_texture);
+				box.addComponent<TextureComponent>("assets/textures/wood.jpg");
 				box.addComponent<RigidBodyComponent>();
 			}
 		}
@@ -53,7 +47,7 @@ private:
 			position + glm::rotate(cameraRotation, {0.0f, 0.0f, 1.0f}),
 			glm::vec3(size, size, size));
 		ball.addComponent<ColourComponent>(glm::vec3(1.0f, 0.0f, 0.0f));
-		ball.addComponent<TextureComponent>(m_texture);
+		ball.addComponent<TextureComponent>("assets/textures/wood.png");
 		ball.addComponent<RigidBodyComponent>(
 			glm::rotate(cameraRotation, glm::vec3(0.0f, 0.0f, 1.0f) * speed));
 	}
@@ -84,7 +78,7 @@ public:
 		floor.addComponent<TransformComponent>(
 			glm::vec3(0.0f, -0.15f, 0.0f), glm::vec3(100.0f, 0.1f, 100.0f));
 		floor.addComponent<ColourComponent>(glm::vec3(1.0f, 1.0f, 1.0f));
-		floor.addComponent<TextureComponent>(m_textureFloor, 50);
+		floor.addComponent<TextureComponent>("assets/textures/floor.png", 50);
 
 		MattEngine::Entity player = createEntity();
 		player.addComponent<TagComponent>("Player");

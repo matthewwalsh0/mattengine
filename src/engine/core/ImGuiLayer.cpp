@@ -4,6 +4,7 @@
 #include "ColourComponent.h"
 #include "Framebuffer.h"
 #include "Game.h"
+#include "TextureComponent.h"
 #include "TransformComponent.h"
 #include "Window.h"
 
@@ -12,6 +13,8 @@
 #include "imgui_impl_opengl3.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+#include <filesystem>
 
 namespace MattEngine {
 
@@ -124,6 +127,32 @@ static void ComponentEditor(Entity& selectedEntity, bool newSelection) {
 		}
 	}
 
+	if (selectedEntity.hasComponent<TextureComponent>()) {
+		TextureComponent& texture =
+			selectedEntity.getComponent<TextureComponent>();
+
+		if (ImGui::CollapsingHeader(
+				"Texture", ImGuiTreeNodeFlags_DefaultOpen)) {
+
+			char texturePath[300];
+			strcpy(texturePath, texture.Path.c_str());
+
+			if (ImGui::InputText("Path", texturePath, 300)) {
+				texture.Path = texturePath;
+			}
+
+			if (ImGui::BeginDragDropTarget()) {
+
+				if (const ImGuiPayload* payload =
+						ImGui::AcceptDragDropPayload("FILE_PATH")) {
+					texture.Path = (char*)payload->Data;
+				}
+
+				ImGui::EndDragDropTarget();
+			}
+		}
+	}
+
 	if (selectedEntity.hasComponent<AnimationComponent>()) {
 		if (ImGui::CollapsingHeader(
 				"Animation", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -169,6 +198,22 @@ static void GameViewport(Game& game, Renderer& renderer, ImVec2& viewportSize) {
 	}
 
 	ImGui::End();
+}
+
+static void ListDirectories(std::filesystem::path path) {
+	if (ImGui::TreeNodeEx(
+			path.filename().c_str(), ImGuiTreeNodeFlags_SpanAvailWidth)) {
+
+		for (const auto& entry : std::filesystem::directory_iterator(path)) {
+			std::filesystem::path nestedPath = entry.path();
+
+			if (std::filesystem::is_directory(nestedPath)) {
+				ListDirectories(nestedPath);
+			}
+		}
+
+		ImGui::TreePop();
+	}
 }
 
 } // namespace ImGuiCustom
@@ -294,6 +339,11 @@ void ImGuiLayer::onAfterRender() {
 		ImGui::PopID();
 	}
 
+	ImGui::End();
+
+	ImGui::Begin("Files", NULL,
+		ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+	m_fileBrowser.onImGuiRender();
 	ImGui::End();
 
 	ImGui::Render();

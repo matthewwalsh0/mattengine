@@ -6,15 +6,12 @@
 using namespace MattEngine;
 
 struct TextureComponent {
-	Texture Texture;
+	std::string Path;
 	unsigned int TileCount = 1;
 
-	TextureComponent(const std::string path) : Texture(path) {}
+	TextureComponent(const std::string path) : Path(path) {}
 	TextureComponent(const std::string path, unsigned int tileCount)
-		: Texture(path), TileCount(tileCount) {}
-	TextureComponent(const MattEngine::Texture& texture) : Texture(texture) {}
-	TextureComponent(const MattEngine::Texture& texture, unsigned int tileCount)
-		: Texture(texture), TileCount(tileCount) {}
+		: Path(path), TileCount(tileCount) {}
 };
 
 #endif

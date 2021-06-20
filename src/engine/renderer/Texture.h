@@ -14,6 +14,7 @@ public:
 	Texture(void* data, int length);
 	void bind(unsigned int slot = 0) const;
 
+	const unsigned int getId() { return m_textureId; }
 	const int getWidth() { return m_width; }
 	const int getHeight() { return m_height; }
 
