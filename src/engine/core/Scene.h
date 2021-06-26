@@ -23,10 +23,7 @@ public:
 	}
 
 	inline static bool isSimulation() { return s_simulation; }
-
 	inline static void setSimulation(bool state) { s_simulation = state; }
-
-	virtual ~Scene() {}
 
 public:
 	Entity createEntity();

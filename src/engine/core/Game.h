@@ -29,18 +29,12 @@ public:
 	void start();
 	void resize(const glm::vec2& size);
 
-	template <typename T, typename... Args> void loadScene(Args&&... args) {
-		m_scene.reset((Scene*)new T(std::forward<Args>(args)...));
-		Scene::setCurrent(m_scene);
-		m_scene->onInit();
-	}
-
 	const float inline getFPS() const { return m_fps; }
 	Framebuffer* getFramebuffer() { return m_framebuffer; }
 	Framebuffer* getFramebufferMultisampled() {
 		return m_framebufferMultisampled;
 	}
-	std::shared_ptr<Scene> getScene() { return m_scene; }
+	Scene& getScene() { return m_scene; }
 	PerspectiveCamera& getCamera() { return m_camera; }
 	PerspectiveCamera& getEditorCamera() { return m_editorCamera; }
 	PerspectiveCamera& getCurrentCamera() {
@@ -70,7 +64,7 @@ private:
 	Window& m_window;
 	float m_fps;
 	std::string m_title;
-	std::shared_ptr<Scene> m_scene;
+	Scene m_scene;
 	Framebuffer* m_framebuffer = nullptr;
 	Framebuffer* m_framebufferMultisampled = nullptr;
 	PerspectiveCamera m_camera = PerspectiveCamera();

@@ -4,9 +4,10 @@
 #include "Model.h"
 
 struct ModelComponent {
-	MattEngine::Model Model;
+	std::string Path = "";
 
-	ModelComponent(MattEngine::Model& model) : Model(model) {}
+	ModelComponent() {}
+	ModelComponent(const std::string& path) : Path(path) {}
 };
 
 #endif

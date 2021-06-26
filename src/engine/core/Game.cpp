@@ -7,6 +7,7 @@
 #include "Log.h"
 #include "Mesh.h"
 #include "ModelComponent.h"
+#include "ModelStore.h"
 #include "PerspectiveCameraComponent.h"
 #include "RigidBodyComponent.h"
 #include "ScriptComponent.h"
@@ -120,7 +121,7 @@ void Game::start() {
 
 void Game::onUpdate(float deltaTime) {
 	Renderer& renderer = Renderer::getInstance();
-	Scene& scene = *m_scene;
+	Scene& scene = m_scene;
 	Window& window = Window::getInstance();
 
 	scene.onBeforeUpdate(renderer);
@@ -234,15 +235,21 @@ void Game::onUpdate(float deltaTime) {
 
 void Game::renderPass(Camera& camera) {
 	Renderer& renderer = Renderer::getInstance();
-	Scene& scene = *m_scene;
+	Scene& scene = m_scene;
 
 	m_framebufferMultisampled->bind();
 
+	glm::vec3 lightPosition = {0.0f, 10.0f, 0.0f};
+	glm::vec3 lightColour = {1.0f, 1.0f, 1.0f};
 	Entity light = scene.getEntity("Light");
 
-	glm::vec3& lightPosition =
-		light.getComponent<TransformComponent>().Position;
-	glm::vec3& lightColour = light.getComponent<ColourComponent>().Colour;
+	if (light && light.hasComponent<TransformComponent>()) {
+		lightPosition = light.getComponent<TransformComponent>().Position;
+	}
+
+	if (light && light.hasComponent<ColourComponent>()) {
+		lightColour = light.getComponent<ColourComponent>().Colour;
+	}
 
 	Light mainLight(lightPosition, lightColour);
 
@@ -289,7 +296,10 @@ void Game::renderPass(Camera& camera) {
 		.view<TransformComponent, ColourComponent, ModelComponent>()
 		.each([&](auto rawEntity, TransformComponent& transform,
 				  ColourComponent& colour, ModelComponent& model) {
-			DrawModelRequest request(model.Model);
+			Model& modelReference =
+				ModelStore::getInstance().getModel(model.Path);
+
+			DrawModelRequest request(modelReference);
 			request.Position = transform.Position;
 			request.Size = transform.Size;
 			request.Rotation = transform.Rotation;

@@ -2,8 +2,10 @@
 
 #include "AnimationComponent.h"
 #include "ColourComponent.h"
+#include "Dialogs.h"
 #include "Framebuffer.h"
 #include "Game.h"
+#include "SceneExporter.h"
 #include "TextureComponent.h"
 #include "TransformComponent.h"
 #include "Window.h"
@@ -29,7 +31,7 @@ static bool EntityList(std::vector<Entity>& entities, Entity& selectedEntity) {
 
 	Game& game = Game::getInstance();
 
-	for (auto& entity : game.getScene()->getAllEntities()) {
+	for (auto& entity : game.getScene().getAllEntities()) {
 		if (ImGui::Selectable(entity.getComponent<TagComponent>().Tag.c_str(),
 				selectedEntity == entity)) {
 
@@ -273,7 +275,30 @@ void ImGuiLayer::onAfterRender() {
 	ImGui::DockSpaceOverViewport();
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
 
-	std::vector<Entity> entities = game.getScene()->getAllEntities();
+	std::vector<Entity> entities = game.getScene().getAllEntities();
+
+	if (ImGui::BeginMainMenuBar()) {
+		if (ImGui::BeginMenu("File")) {
+			if (ImGui::MenuItem("Open...")) {
+				if (auto openPath = Dialogs::open()) {
+					SceneExporter::load(*openPath);
+				}
+			}
+
+			ImGui::Separator();
+
+			if (ImGui::MenuItem("Save As")) {
+				if (auto savePath = Dialogs::save()) {
+					SceneExporter::save(game.getScene(), *savePath);
+				}
+			}
+
+			ImGui::EndMenu();
+		}
+		ImGui::EndMenuBar();
+	}
+	ImGui::End();
+
 	bool newSelection = ImGuiCustom::EntityList(entities, m_selectedEntity);
 	ImGuiCustom::ComponentEditor(m_selectedEntity, newSelection);
 
@@ -344,6 +369,7 @@ void ImGuiLayer::onAfterRender() {
 	ImGui::Begin("Files", NULL,
 		ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 	m_fileBrowser.onImGuiRender();
+
 	ImGui::End();
 
 	ImGui::Render();

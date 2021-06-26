@@ -19,3 +19,9 @@
 [submodule "deps/physx"]
 	path = deps/physx
 	url = https://github.com/NVIDIAGameWorks/PhysX.git
+[submodule "deps/yaml-cpp"]
+	path = deps/yaml-cpp
+	url = https://github.com/jbeder/yaml-cpp
+[submodule "deps/nativefiledialog-cmake"]
+	path = deps/nativefiledialog-cmake
+	url = https://github.com/aarcangeli/nativefiledialog-cmake

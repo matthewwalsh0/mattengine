@@ -124,7 +124,7 @@ class Demo : public MattEngine::Game {
 public:
 	Demo(MattEngine::Window& window) : Game(window) {}
 
-	void onInit() override { loadScene<DemoScene>(); }
+	void onInit() override {}
 };
 
 int main(int argc, char** argv) {

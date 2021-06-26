@@ -3,6 +3,7 @@
 #include "ColourComponent.h"
 #include "Game.h"
 #include "ModelComponent.h"
+#include "ModelStore.h"
 #include "PerspectiveCamera.h"
 #include "Renderer.h"
 #include "Scene.h"
@@ -26,13 +27,20 @@ void ShadowLayer::onInit() {
 void ShadowLayer::onBeforeRender() {
 	Renderer& renderer = Renderer::getInstance();
 	Game& game = Game::getInstance();
-	Scene& scene = *game.getScene();
+	Scene& scene = game.getScene();
 	Camera& camera = game.getCurrentCamera();
 
+	glm::vec3 lightPosition = {0.0f, 10.0f, 0.0f};
+	glm::vec3 lightColour = {1.0f, 1.0f, 1.0f};
 	Entity light = scene.getEntity("Light");
 
-	glm::vec3& lightPosition =
-		light.getComponent<TransformComponent>().Position;
+	if (light && light.hasComponent<TransformComponent>()) {
+		lightPosition = light.getComponent<TransformComponent>().Position;
+	}
+
+	if (light && light.hasComponent<ColourComponent>()) {
+		lightColour = light.getComponent<ColourComponent>().Colour;
+	}
 
 	for (int depthMapIndex = 0; depthMapIndex < DepthMapCount;
 		 depthMapIndex++) {
@@ -84,7 +92,6 @@ void ShadowLayer::onBeforeRender() {
 					request.DepthOnly = true;
 
 					if (tag.Tag != "Floor") {
-
 						renderer.drawCube(request);
 					}
 				});
@@ -92,7 +99,10 @@ void ShadowLayer::onBeforeRender() {
 			scene.getRegistry().view<TransformComponent, ModelComponent>().each(
 				[&](auto rawEntity, TransformComponent& transform,
 					ModelComponent& model) {
-					DrawModelRequest request(model.Model);
+					Model& modelReference =
+						ModelStore::getInstance().getModel(model.Path);
+
+					DrawModelRequest request(modelReference);
 					request.Position = transform.Position;
 					request.Size = transform.Size;
 					request.Rotation = transform.Rotation;
