@@ -9,6 +9,7 @@
 #include "ModelComponent.h"
 #include "ModelStore.h"
 #include "PerspectiveCameraComponent.h"
+#include "PlayerControllerComponent.h"
 #include "RigidBodyComponent.h"
 #include "ScriptComponent.h"
 #include "SkyBoxComponent.h"
@@ -90,7 +91,6 @@ void Game::start() {
 
 		if (m_active) {
 			onUpdate(deltaTime);
-			m_camera.onUpdate(deltaTime);
 
 			for (auto& layer : m_layers)
 				(*layer).onUpdate();
@@ -182,7 +182,31 @@ void Game::onUpdate(float deltaTime) {
 			scene.getRegistry().destroy(entity);
 		});
 
-	scene.onUpdate(deltaTime);
+	onCustomUpdate(deltaTime);
+
+	scene.getRegistry().view<PlayerControllerComponent>().each(
+		[&](auto rawEntity, PlayerControllerComponent& playerController) {
+			if (!playerController.Controller.isInit()) {
+				Entity wrappedEntity = scene.createEntity(rawEntity);
+				playerController.Controller.init(wrappedEntity);
+			}
+
+			playerController.Controller.onUpdate(deltaTime);
+		});
+
+	scene.getRegistry()
+		.view<TransformComponent, PerspectiveCameraComponent>()
+		.each([&](auto rawEntity, TransformComponent& transform,
+				  PerspectiveCameraComponent& perspectiveCamera) {
+			glm::vec3 cameraDirection = glm::normalize(glm::rotate(
+				perspectiveCamera.Rotation, glm::vec3(0.0f, 0.0f, 1.0f)));
+
+			m_camera.setPosition(
+				glm::vec3(transform.Position.x, transform.Position.y + 1.0f,
+					transform.Position.z) +
+				(cameraDirection * -5.0f));
+			m_camera.setRotation(perspectiveCamera.Rotation);
+		});
 
 	scene.getRegistry().view<RigidBodyComponent, TransformComponent>().each(
 		[&](const auto entity, RigidBodyComponent& rigidDynamic,
@@ -212,14 +236,6 @@ void Game::onUpdate(float deltaTime) {
 			physicsTransform.q.z = transform.Rotation.z;
 
 			rigidDynamic.Body->setGlobalPose(physicsTransform);
-		});
-
-	scene.getRegistry()
-		.view<TransformComponent, PerspectiveCameraComponent>()
-		.each([&](auto rawEntity, TransformComponent& transform,
-				  PerspectiveCameraComponent& perspectiveCamera) {
-			m_camera.setPosition(transform.Position);
-			m_camera.setRotation(perspectiveCamera.Rotation);
 		});
 
 	scene.getRegistry().view<AnimationComponent>().each(
@@ -280,6 +296,13 @@ void Game::renderPass(Camera& camera) {
 		.view<TransformComponent, ColourComponent, TextureComponent>()
 		.each([&](auto rawEntity, TransformComponent& transform,
 				  ColourComponent& colour, TextureComponent& texture) {
+			Entity actualEntity = scene.createEntity(rawEntity);
+
+			if (RenderPhysicsObjects &&
+				actualEntity.hasComponent<RigidBodyComponent>()) {
+				return;
+			}
+
 			DrawCubeRequest request;
 			request.Position = transform.Position;
 			request.Size = transform.Size;
@@ -316,6 +339,45 @@ void Game::renderPass(Camera& camera) {
 
 			renderer.drawModel(request);
 		});
+
+	if (RenderPhysicsObjects) {
+		scene.getRegistry().view<RigidBodyComponent>().each(
+			[&](const auto entity, RigidBodyComponent& rigidDynamic) {
+				if (!rigidDynamic.Body)
+					return;
+
+				PxShape* shape = nullptr;
+
+				PxTransform physicsTransform =
+					rigidDynamic.Body->getGlobalPose();
+				rigidDynamic.Body->getShapes(&shape, sizeof(shape));
+
+				PxVec3 size = shape->getGeometry().box().halfExtents;
+
+				DrawCubeRequest request;
+				request.Position = {physicsTransform.p.x, physicsTransform.p.y,
+					physicsTransform.p.z};
+				request.Size = {size.x * 2, size.y * 2, size.z * 2};
+				request.Rotation =
+					glm::quat(physicsTransform.q.w, physicsTransform.q.x,
+						physicsTransform.q.y, physicsTransform.q.z);
+				request.Colour = {0.0f, 1.0f, 0.0f};
+
+				renderer.drawCube(request);
+			});
+
+		scene.getRegistry().view<PlayerControllerComponent>().each(
+			[&](const auto entity,
+				PlayerControllerComponent& playerController) {
+				DrawCubeRequest request;
+				request.Position = playerController.Controller.getPosition();
+				request.Size = playerController.Controller.getSize();
+				request.Rotation = playerController.Controller.getRotation();
+				request.Colour = {0.0f, 0.0f, 1.0f};
+
+				renderer.drawCube(request);
+			});
+	}
 
 	if (m_fullscreen) {
 		m_framebufferMultisampled->copyToScreen();

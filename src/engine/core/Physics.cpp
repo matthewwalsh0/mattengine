@@ -47,6 +47,7 @@ void Physics::init() {
 
 	PxBoxControllerDesc playerControllerDesc;
 	playerControllerDesc.material = m_material;
+	playerControllerDesc.halfHeight = 0.5f;
 
 	m_playerController = manager->createController(playerControllerDesc);
 

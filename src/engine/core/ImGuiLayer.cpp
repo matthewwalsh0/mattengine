@@ -322,6 +322,7 @@ void ImGuiLayer::onAfterRender() {
 		framebufferMultisampled->setSamples(samples);
 	}
 
+	ImGui::Checkbox("Show Physics Objects", &game.RenderPhysicsObjects);
 	ImGui::End();
 
 	ImGui::Begin("Camera", NULL, ImGuiWindowFlags_NoScrollbar);

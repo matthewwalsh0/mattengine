@@ -41,7 +41,8 @@ static inline glm::quat toGLMQuat(const aiQuaternion& from) {
 	return glm::quat(from.w, from.x, from.y, from.z);
 }
 
-static void readVertices(const aiMesh& rawMesh, std::vector<Vertex>& vertices) {
+static void readVertices(
+	const aiMesh& rawMesh, std::vector<Vertex>& vertices, float* bounds) {
 	for (unsigned int vertexIndex = 0; vertexIndex < rawMesh.mNumVertices;
 		 vertexIndex++) {
 		Vertex vertex;
@@ -59,6 +60,30 @@ static void readVertices(const aiMesh& rawMesh, std::vector<Vertex>& vertices) {
 		vertex.TexturePosition = texturePosition;
 
 		vertices.push_back(vertex);
+
+		if (vertex.Position.x < bounds[MODEL_BOUND_LEFT]) {
+			bounds[MODEL_BOUND_LEFT] = vertex.Position.x;
+		}
+
+		if (vertex.Position.x > bounds[MODEL_BOUND_RIGHT]) {
+			bounds[MODEL_BOUND_RIGHT] = vertex.Position.x;
+		}
+
+		if (vertex.Position.y < bounds[MODEL_BOUND_BOTTOM]) {
+			bounds[MODEL_BOUND_BOTTOM] = vertex.Position.y;
+		}
+
+		if (vertex.Position.y > bounds[MODEL_BOUND_TOP]) {
+			bounds[MODEL_BOUND_TOP] = vertex.Position.y;
+		}
+
+		if (vertex.Position.z < bounds[MODEL_BOUND_FRONT]) {
+			bounds[MODEL_BOUND_FRONT] = vertex.Position.z;
+		}
+
+		if (vertex.Position.z > bounds[MODEL_BOUND_BACK]) {
+			bounds[MODEL_BOUND_BACK] = vertex.Position.z;
+		}
 	}
 }
 
@@ -273,12 +298,19 @@ Model::Model(const std::string& file, bool flip) {
 	unsigned int boneCounter = 0;
 	std::map<int, Texture> texturesByMaterialIndex;
 
+	Bounds[MODEL_BOUND_LEFT] = INFINITY;
+	Bounds[MODEL_BOUND_RIGHT] = -INFINITY;
+	Bounds[MODEL_BOUND_TOP] = -INFINITY;
+	Bounds[MODEL_BOUND_BOTTOM] = INFINITY;
+	Bounds[MODEL_BOUND_FRONT] = INFINITY;
+	Bounds[MODEL_BOUND_BACK] = -INFINITY;
+
 	for (unsigned int i = 0; i < scene->mNumMeshes; i++) {
 		aiMesh* mesh = scene->mMeshes[i];
 		std::vector<Vertex> vertices;
 		std::vector<unsigned int> indices;
 
-		Utils::readVertices(*mesh, vertices);
+		Utils::readVertices(*mesh, vertices, Bounds);
 		Utils::readIndices(*mesh, indices);
 
 		std::optional<Texture> texture = Utils::readTexture(

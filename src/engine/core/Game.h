@@ -2,6 +2,7 @@
 #define GAME_H
 
 #include "Entity.h"
+#include "FPSPlayerController.h"
 #include "Framebuffer.h"
 #include "ImGuiLayer.h"
 #include "Layer.h"
@@ -23,6 +24,7 @@ namespace MattEngine {
 class Game {
 public:
 	virtual void onInit(){};
+	virtual void onCustomUpdate(float deltaTime){};
 
 public:
 	Game(Window& window);
@@ -72,6 +74,9 @@ private:
 	Physics m_physics;
 	bool m_active = false;
 	bool m_fullscreen = false;
+
+public:
+	bool RenderPhysicsObjects = false;
 };
 
 } // namespace MattEngine

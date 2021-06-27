@@ -1,26 +1,27 @@
+#include "AnimationComponent.h"
 #include "ColourComponent.h"
-#include "FPSPlayerController.h"
 #include "Game.h"
 #include "LightComponent.h"
 #include "ModelComponent.h"
+#include "ModelStore.h"
 #include "PerspectiveCameraComponent.h"
+#include "PlayerControllerComponent.h"
 #include "RigidBodyComponent.h"
 #include "SkyBoxComponent.h"
 #include "TextureComponent.h"
 
 using namespace MattEngine;
 
-class DemoScene : public MattEngine::Scene {
-
-private:
-	FPSPlayerController m_playerController;
+class Demo : public MattEngine::Game {
+public:
+	Demo(MattEngine::Window& window) : Game(window) {}
 
 private:
 	void createStack(
 		const unsigned int stackSize = 20, const float boxSize = 1.0f) {
 		for (int y = 0; y < stackSize; y++) {
 			for (int x = 0; x < stackSize - y; x++) {
-				MattEngine::Entity box = createEntity();
+				MattEngine::Entity box = getScene().createEntity();
 				box.addComponent<TagComponent>("Box");
 				box.addComponent<TransformComponent>(
 					glm::vec3((x * boxSize * 1.1 + (y * (boxSize / 2))) -
@@ -41,60 +42,62 @@ private:
 		const glm::vec3& position = camera.getPosition();
 		glm::quat cameraRotation = camera.getRotation();
 
-		MattEngine::Entity ball = createEntity();
+		MattEngine::Entity ball = getScene().createEntity();
 		ball.addComponent<TagComponent>("Ball");
 		ball.addComponent<TransformComponent>(
 			position + glm::rotate(cameraRotation, {0.0f, 0.0f, 1.0f}),
 			glm::vec3(size, size, size));
 		ball.addComponent<ColourComponent>(glm::vec3(1.0f, 0.0f, 0.0f));
-		ball.addComponent<TextureComponent>("assets/textures/wood.png");
+		ball.addComponent<TextureComponent>("assets/textures/wood.jpg");
 		ball.addComponent<RigidBodyComponent>(
 			glm::rotate(cameraRotation, glm::vec3(0.0f, 0.0f, 1.0f) * speed));
 	}
 
 	void reset() {
-		for (auto& box : getEntities("Box")) {
-			deleteEntity(box);
+		for (auto& box : getScene().getEntities("Box")) {
+			getScene().deleteEntity(box);
 		}
-		for (auto& box : getEntities("Ball")) {
-			deleteEntity(box);
+		for (auto& box : getScene().getEntities("Ball")) {
+			getScene().deleteEntity(box);
 		}
 	}
 
 public:
 	void onInit() override {
-		MattEngine::Entity skybox = createEntity();
+		MattEngine::Entity skybox = getScene().createEntity();
 		skybox.addComponent<SkyBoxComponent>("assets/textures/skybox");
 
-		MattEngine::Entity light = createEntity();
+		MattEngine::Entity light = getScene().createEntity();
 		light.addComponent<TagComponent>("Light");
 		light.addComponent<TransformComponent>(
 			glm::vec3(0.0f, 200.0f, 30.0f), glm::vec3(0.5f, 0.5f, 0.5f));
 		light.addComponent<ColourComponent>(glm::vec3(1.0f, 1.0f, 1.0f));
 		light.addComponent<LightComponent>();
 
-		MattEngine::Entity floor = createEntity();
+		MattEngine::Entity floor = getScene().createEntity();
 		floor.addComponent<TagComponent>("Floor");
 		floor.addComponent<TransformComponent>(
 			glm::vec3(0.0f, -0.15f, 0.0f), glm::vec3(100.0f, 0.1f, 100.0f));
 		floor.addComponent<ColourComponent>(glm::vec3(1.0f, 1.0f, 1.0f));
 		floor.addComponent<TextureComponent>("assets/textures/floor.png", 50);
 
-		MattEngine::Entity player = createEntity();
+		MattEngine::Entity player = getScene().createEntity();
 		player.addComponent<TagComponent>("Player");
 		player.addComponent<TransformComponent>(
-			glm::vec3(0.0f, 5.0f, 30.0f), glm::vec3(1.0f, 1.0f, 1.0f));
+			glm::vec3(0.0f, -0.1f, 30.0f), glm::vec3(0.01f, 0.01f, 0.01f));
 		player.addComponent<PerspectiveCameraComponent>();
+		player.addComponent<ColourComponent>(glm::vec3(1.0f, 1.0f, 1.0f));
+		player.addComponent<ModelComponent>("assets/models/ninja_running.fbx");
+		player.addComponent<AnimationComponent>(
+			&ModelStore::getInstance()
+				 .getModel("assets/models/ninja_running.fbx")
+				 .Animations[0]);
+		player.addComponent<PlayerControllerComponent>();
 
 		createStack();
-
-		m_playerController.init(player);
 	}
 
-	void onUpdate(float deltaTime) override {
-
-		m_playerController.onUpdate(deltaTime);
-
+	void onCustomUpdate(float deltaTime) override {
 		Window& window = Window::getInstance();
 
 		static bool down = false;
@@ -118,13 +121,6 @@ public:
 			down = false;
 		}
 	}
-};
-
-class Demo : public MattEngine::Game {
-public:
-	Demo(MattEngine::Window& window) : Game(window) {}
-
-	void onInit() override {}
 };
 
 int main(int argc, char** argv) {

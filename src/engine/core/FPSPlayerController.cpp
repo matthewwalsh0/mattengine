@@ -2,10 +2,39 @@
 
 #include "Game.h"
 #include "Log.h"
+#include "ModelComponent.h"
+#include "ModelStore.h"
 #include "PerspectiveCameraComponent.h"
 #include "Physics.h"
 
 using namespace MattEngine;
+
+const glm::vec3& FPSPlayerController::getPosition() {
+	Physics& physics = Game::getInstance().getPhysics();
+	PxController& playerController = physics.getPlayerController();
+	PxVec3 physicsPosition = playerController.getActor()->getGlobalPose().p;
+
+	return {physicsPosition.x, physicsPosition.y, physicsPosition.z};
+}
+
+const glm::quat& FPSPlayerController::getRotation() {
+	Physics& physics = Game::getInstance().getPhysics();
+	PxController& playerController = physics.getPlayerController();
+	PxQuat rotation = playerController.getActor()->getGlobalPose().q;
+
+	return glm::quat(rotation.w, rotation.x, rotation.y, rotation.z);
+}
+
+const glm::vec3& FPSPlayerController::getSize() {
+	Physics& physics = Game::getInstance().getPhysics();
+	PxController& playerController = physics.getPlayerController();
+	PxShape* shape = nullptr;
+
+	playerController.getActor()->getShapes(&shape, sizeof(shape));
+	PxVec3 size = shape->getGeometry().box().halfExtents;
+
+	return {size.x * 2, size.y * 2, size.z * 2};
+}
 
 void FPSPlayerController::init(Entity entity) {
 	m_entity = entity;
@@ -16,8 +45,19 @@ void FPSPlayerController::init(Entity entity) {
 	PerspectiveCameraComponent& perspectiveCamera =
 		m_entity.getComponent<PerspectiveCameraComponent>();
 
+	glm::vec3 controllerPosition = transform.Position;
+
+	if (m_entity.hasComponent<ModelComponent>()) {
+		ModelComponent& model = m_entity.getComponent<ModelComponent>();
+		Model& rawModel = ModelStore::getInstance().getModel(model.Path);
+
+		glm::vec3 center = rawModel.getCenterOffset();
+
+		controllerPosition += (center * transform.Size);
+	}
+
 	playerController.setPosition(PxExtendedVec3(
-		transform.Position.x, transform.Position.y, transform.Position.z));
+		controllerPosition.x, controllerPosition.y, controllerPosition.z));
 
 	m_rotationController.init(m_rotation);
 }
@@ -68,6 +108,17 @@ void FPSPlayerController::onUpdate(float deltaTime) {
 
 	PxExtendedVec3 playerPosition = playerController.getPosition();
 	transform.Position = {playerPosition.x, playerPosition.y, playerPosition.z};
+
+	if (m_entity.hasComponent<ModelComponent>()) {
+		ModelComponent& model = m_entity.getComponent<ModelComponent>();
+		Model& rawModel = ModelStore::getInstance().getModel(model.Path);
+
+		glm::vec3 center = rawModel.getCenterOffset();
+
+		transform.Position -= (center * transform.Size);
+	}
+
+	transform.Rotation = m_rotation;
 
 	m_rotationController.onUpdate(deltaTime);
 	perspectiveCamera.Rotation = m_rotation;

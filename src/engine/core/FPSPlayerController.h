@@ -13,10 +13,15 @@ class FPSPlayerController : PlayerController {
 public:
 	void init(Entity entity) override;
 	void onUpdate(float deltaTime) override;
+	const glm::vec3& getPosition();
+	const glm::vec3& getSize();
+	const glm::quat& getRotation();
+
+	bool isInit() { return m_entity; }
 
 private:
 	Entity m_entity;
-	float m_speed = 1.0f;
+	float m_speed = 0.2f;
 	glm::quat m_rotation;
 	MouseRotationCameraController m_rotationController;
 };
