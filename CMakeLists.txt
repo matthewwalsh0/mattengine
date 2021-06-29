@@ -62,12 +62,14 @@ include_directories(deps/yaml-cpp/include)
 add_subdirectory(deps/nativefiledialog-cmake)
 
 # mattengine
-file(GLOB_RECURSE SOURCES "src/engine/**.cpp" "src/engine/**.h", "deps/stb_image/*.cpp", "deps/stb_image/*.h")
+file(GLOB_RECURSE SOURCES "src/engine/**.cpp" "src/engine/**.h", "src/editor/**.h", "src/editor/**.cpp", "deps/stb_image/*.cpp", "deps/stb_image/*.h")
 include_directories(src/engine/core)
 include_directories(src/engine/entity)
 include_directories(src/engine/entity/components)
 include_directories(src/engine/renderer)
 include_directories(src/engine/renderer/camera)
+include_directories(src/editor)
+include_directories(src/editor/imgui)
 add_library(mattengine STATIC ${SOURCES} ${GLAD} ${IMGUI})
 target_link_libraries(mattengine glfw glm freetype assimp PhysXCharacterKinematic PhysXCommon PhysXCooking PhysXExtensions PhysXFoundation PhysXPvdSDK PhysXVehicle PhysX yaml-cpp "-framework AppKit" nativefiledialog )
 

@@ -13,9 +13,9 @@ class FPSPlayerController : PlayerController {
 public:
 	void init(Entity entity) override;
 	void onUpdate(float deltaTime) override;
-	const glm::vec3& getPosition();
-	const glm::vec3& getSize();
-	const glm::quat& getRotation();
+	const glm::vec3 getPosition();
+	const glm::vec3 getSize();
+	const glm::quat getRotation();
 
 	bool isInit() { return m_entity; }
 

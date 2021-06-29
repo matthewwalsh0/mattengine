@@ -7,7 +7,7 @@ namespace ImGuiCustom {
 
 class FileBrowser {
 public:
-	void onImGuiRender();
+	void render();
 
 private:
 	std::filesystem::path m_rootPath = ".";

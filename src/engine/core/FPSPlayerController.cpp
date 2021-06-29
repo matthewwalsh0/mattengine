@@ -9,7 +9,7 @@
 
 using namespace MattEngine;
 
-const glm::vec3& FPSPlayerController::getPosition() {
+const glm::vec3 FPSPlayerController::getPosition() {
 	Physics& physics = Game::getInstance().getPhysics();
 	PxController& playerController = physics.getPlayerController();
 	PxVec3 physicsPosition = playerController.getActor()->getGlobalPose().p;
@@ -17,7 +17,7 @@ const glm::vec3& FPSPlayerController::getPosition() {
 	return {physicsPosition.x, physicsPosition.y, physicsPosition.z};
 }
 
-const glm::quat& FPSPlayerController::getRotation() {
+const glm::quat FPSPlayerController::getRotation() {
 	Physics& physics = Game::getInstance().getPhysics();
 	PxController& playerController = physics.getPlayerController();
 	PxQuat rotation = playerController.getActor()->getGlobalPose().q;
@@ -25,7 +25,7 @@ const glm::quat& FPSPlayerController::getRotation() {
 	return glm::quat(rotation.w, rotation.x, rotation.y, rotation.z);
 }
 
-const glm::vec3& FPSPlayerController::getSize() {
+const glm::vec3 FPSPlayerController::getSize() {
 	Physics& physics = Game::getInstance().getPhysics();
 	PxController& playerController = physics.getPlayerController();
 	PxShape* shape = nullptr;

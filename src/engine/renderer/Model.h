@@ -59,42 +59,63 @@ struct Animation {
 
 class Model {
 public:
+	Model(const std::string& file, bool flip = false);
+
+	const glm::vec3* getBounds() {
+		if (!m_boundPositionsSet) {
+			float left = Bounds[MODEL_BOUND_LEFT];
+			float right = Bounds[MODEL_BOUND_RIGHT];
+			float top = Bounds[MODEL_BOUND_TOP];
+			float bottom = Bounds[MODEL_BOUND_BOTTOM];
+			float front = Bounds[MODEL_BOUND_FRONT];
+			float back = Bounds[MODEL_BOUND_BACK];
+
+			m_boundPositions[0] = {left, bottom, front};
+			m_boundPositions[1] = {left, top, front};
+			m_boundPositions[2] = {right, top, front};
+			m_boundPositions[3] = {right, bottom, front};
+			m_boundPositions[4] = {left, bottom, back};
+			m_boundPositions[5] = {left, top, back};
+			m_boundPositions[6] = {right, top, back};
+			m_boundPositions[7] = {right, bottom, back};
+
+			m_boundPositionsSet = true;
+		}
+
+		return m_boundPositions;
+	}
+
+	const glm::vec3 getCenterOffset() {
+		if (!m_centerPositionSet) {
+			const glm::vec3* bounds = getBounds();
+
+			glm::vec3 total = {0.0f, 0.0f, 0.0f};
+
+			for (int i = 0; i < 8; i++) {
+				total += bounds[i];
+			}
+
+			m_centerPosition = total / 8.0f;
+			m_centerPositionSet = true;
+		}
+
+		return m_centerPosition;
+	}
+
+public:
 	std::vector<Mesh> Meshes;
 	std::vector<Animation> Animations;
 	std::map<std::string, Bone> BonesByName;
 	Bone* Skeleton = nullptr;
 	float Bounds[6];
 
-public:
-	Model(const std::string& file, bool flip = false);
-
-	const glm::vec3* getBounds() {
-		float left = Bounds[MODEL_BOUND_LEFT];
-		float right = Bounds[MODEL_BOUND_RIGHT];
-		float top = Bounds[MODEL_BOUND_TOP];
-		float bottom = Bounds[MODEL_BOUND_BOTTOM];
-		float front = Bounds[MODEL_BOUND_FRONT];
-		float back = Bounds[MODEL_BOUND_BACK];
-
-		glm::vec3 bounds[] = {{left, bottom, front}, {left, top, front},
-			{right, top, front}, {right, bottom, front}, {left, bottom, back},
-			{left, top, back}, {right, top, back}, {right, bottom, back}};
-
-		return bounds;
-	}
-
-	const glm::vec3 getCenterOffset() {
-		const glm::vec3* bounds = getBounds();
-
-		glm::vec3 total = {0.0f, 0.0f, 0.0f};
-
-		for (int i = 0; i < 8; i++) {
-			total += bounds[i];
-		}
-
-		return total / 8.0f;
-	}
+private:
+	glm::vec3 m_boundPositions[8];
+	glm::vec3 m_centerPosition;
+	bool m_boundPositionsSet = false;
+	bool m_centerPositionSet = false;
 };
+
 } // namespace MattEngine
 
 #endif

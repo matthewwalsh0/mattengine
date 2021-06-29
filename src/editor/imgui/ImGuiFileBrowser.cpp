@@ -41,7 +41,7 @@ static void ListDirectories(std::filesystem::path path,
 	}
 }
 
-void FileBrowser::onImGuiRender() {
+void FileBrowser::render() {
 	std::vector<std::filesystem::path> parts;
 	parts.push_back(m_currentPath);
 
@@ -51,6 +51,9 @@ void FileBrowser::onImGuiRender() {
 		current = current.parent_path();
 		parts.insert(parts.begin(), current);
 	}
+
+	ImGui::Begin("Files", NULL,
+		ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
 	for (auto& part : parts) {
 		if (ImGui::Button(getPathName(part, m_rootPath).c_str())) {
@@ -146,7 +149,10 @@ void FileBrowser::onImGuiRender() {
 				}
 			}
 		}
+
 		ImGui::EndTable();
 	}
+
 	ImGui::EndTable();
+	ImGui::End();
 }
