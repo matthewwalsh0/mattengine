@@ -9,6 +9,7 @@ public:
 	virtual void onUpdate(){};
 	virtual void onBeforeRender(){};
 	virtual void onAfterRender(){};
+	virtual void onResize(unsigned int width, unsigned int height){};
 	virtual ~Layer(){};
 };
 

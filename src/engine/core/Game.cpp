@@ -10,6 +10,7 @@
 #include "ModelStore.h"
 #include "PerspectiveCameraComponent.h"
 #include "PlayerControllerComponent.h"
+#include "PostProcessingLayer.h"
 #include "RigidBodyComponent.h"
 #include "ScriptComponent.h"
 #include "SkyBoxComponent.h"
@@ -30,6 +31,7 @@ Game::Game(Window& window) : m_window(window), m_title(window.getTitle()) {
 	s_instance = this;
 
 	m_layers.emplace_back(new ShadowLayer());
+	m_layers.emplace_back(new PostProcessingLayer());
 	m_layers.emplace_back(new ImGuiLayer());
 }
 
@@ -43,6 +45,9 @@ void Game::resize(const glm::vec2& size) {
 
 	m_framebufferMultisampled->resize(size.x, size.y);
 	m_framebuffer->resize(size.x, size.y);
+
+	for (auto& layer : m_layers)
+		(*layer).onResize(size.x, size.y);
 }
 
 void Game::start() {
@@ -384,7 +389,6 @@ void Game::renderPass(Camera& camera) {
 	} else {
 		m_framebufferMultisampled->copy(*m_framebuffer);
 	}
-
 	m_framebuffer->unbind();
 }
 

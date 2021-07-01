@@ -1,6 +1,7 @@
 #include "ImGuiEngineSettings.h"
 
 #include "Game.h"
+#include "PostProcessingLayer.h"
 
 using namespace MattEngine::ImGuiCustom;
 
@@ -13,12 +14,17 @@ void EngineSettings::render() {
 		Framebuffer* framebufferMultisampled =
 			game.getFramebufferMultisampled();
 
+		PostProcessingLayer& postProcessing = game.getPostProcessing();
+
 		int samples = game.getFramebufferMultisampled()->getSamples();
 		bool samplesChanged = ImGui::SliderInt("MSAA", &samples, 0, 16);
 
 		if (samplesChanged) {
 			framebufferMultisampled->setSamples(samples);
 		}
+
+		ImGui::Checkbox("Grayscale", &postProcessing.Grayscale);
+		ImGui::Checkbox("Invert", &postProcessing.Invert);
 	}
 
 	if (ImGui::CollapsingHeader("Physics")) {

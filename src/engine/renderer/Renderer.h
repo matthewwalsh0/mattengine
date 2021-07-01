@@ -24,6 +24,7 @@ public:
 	Texture* Texture = nullptr;
 	unsigned int TileCount = 1;
 	bool DepthOnly = false;
+	bool Manual = false;
 
 public:
 	DrawCubeRequest() {}
@@ -80,6 +81,7 @@ private:
 	Shader m_shaderShadow = Shader("assets/shaders/shadow.glsl");
 	Shader m_shaderRawTriangle = Shader("assets/shaders/rawTriangle.glsl");
 	std::shared_ptr<VertexArray> m_cube;
+	std::shared_ptr<VertexArray> m_quad;
 	OrthoCamera m_shadowCamera = OrthoCamera({-5.0f, 5.0f, -5.0f, 5.0f},
 		{0.1f, 50.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f});
 	unsigned int m_defaultTextureData[1] = {0xFFFFFF};

@@ -31,6 +31,9 @@ void Renderer::init() {
 	m_cube.reset(new VertexArray(Vertices::CUBE, 6 * 6, {}, 0,
 		{{GL_FLOAT, 3}, {GL_FLOAT, 3}, {GL_FLOAT, 2}}));
 
+	m_quad.reset(new VertexArray(Vertices::QUAD, 6, {}, 0,
+		{{GL_FLOAT, 3}, {GL_FLOAT, 3}, {GL_FLOAT, 2}}));
+
 	m_defaultBoneTransforms.reserve(100);
 
 	for (int i = 0; i < 100; i++)
@@ -104,20 +107,24 @@ void Renderer::drawCube(DrawCubeRequest& request) {
 
 	m_cube->bind();
 
-	if (request.DepthOnly) {
-		m_shaderShadow.bind();
-		m_shaderShadow.setMat4("u_Model", model);
-	} else {
-		m_shader.bind();
-		m_shader.setMat4("u_Model", model);
-		m_shader.setVec3("u_Colour", request.Colour);
-		m_shader.setInt("u_TileCount", request.TileCount);
-
-		if (request.Texture) {
-			request.Texture->bind();
+	if (!request.Manual) {
+		if (request.DepthOnly) {
+			m_shaderShadow.bind();
+			m_shaderShadow.setMat4("u_Model", model);
 		} else {
-			m_defaultTexture.bind();
+			m_shader.bind();
+			m_shader.setMat4("u_Model", model);
+			m_shader.setVec3("u_Colour", request.Colour);
+			m_shader.setInt("u_TileCount", request.TileCount);
+
+			if (request.Texture) {
+				request.Texture->bind();
+			} else {
+				m_defaultTexture.bind();
+			}
 		}
+	} else {
+		m_quad->bind();
 	}
 
 	glDrawArrays(GL_TRIANGLES, 0, 36);

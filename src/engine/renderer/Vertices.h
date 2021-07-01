@@ -49,6 +49,16 @@ public:
         -0.5f, 0.5f, 0.5f,      0.0f, 1.0f, 0.0f,   0.0f, 0.0f,
         -0.5f, 0.5f, -0.5f,     0.0f, 1.0f, 0.0f,   0.0f, 1.0f};
 	// clang-format on
+
+	// clang-format off
+    inline static const float QUAD[] = {
+        -1.0f, -1.0f, -0.0f,    0.0f, 0.0f, -1.0f,  0.0f, 0.0f,
+        1.0f, -1.0f, -0.0f,     0.0f, 0.0f, -1.0f,  1.0f, 0.0f,
+        1.0f, 1.0f, -0.0f,      0.0f, 0.0f, -1.0f,  1.0f, 1.0f,
+        1.0f, 1.0f, -0.0f,      0.0f, 0.0f, -1.0f,  1.0f, 1.0f,
+        -1.0f, 1.0f, -0.0f,     0.0f, 0.0f, -1.0f,  0.0f, 1.0f,
+        -1.0f, -1.0f, -0.0f,    0.0f, 0.0f, -1.0f,  0.0f, 0.0f};
+	// clang-format on
 };
 
 } // namespace MattEngine

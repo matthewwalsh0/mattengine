@@ -9,6 +9,7 @@
 #include "OrthoCamera.h"
 #include "PerspectiveCamera.h"
 #include "Physics.h"
+#include "PostProcessingLayer.h"
 #include "Renderer.h"
 #include "Scene.h"
 #include "Shader.h"
@@ -44,6 +45,9 @@ public:
 	}
 	Physics& getPhysics() { return m_physics; }
 	ShadowLayer& getShadows() { return ((ShadowLayer&)*(m_layers[0])); }
+	PostProcessingLayer& getPostProcessing() {
+		return ((PostProcessingLayer&)*(m_layers[1]));
+	}
 
 	void play() { m_active = true; }
 	void pause() { m_active = false; }
