@@ -9,6 +9,7 @@ class MouseRotationCameraController {
 public:
 	void init(glm::quat& rotation);
 	void onUpdate(float deltaTime);
+	void reset();
 
 	void setRequireClick(bool requireClick) { m_requireClick = requireClick; }
 

@@ -21,6 +21,9 @@ PerspectiveCamera::PerspectiveCamera(float nearPlane, float farPlane)
 }
 
 void PerspectiveCamera::onUpdate(float deltaTime) {
+	if (!m_useController)
+		return;
+
 	m_controller.onUpdate(deltaTime);
 	invalidate();
 }

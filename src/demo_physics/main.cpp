@@ -10,11 +10,18 @@
 #include "SkyBoxComponent.h"
 #include "TextureComponent.h"
 
+#ifdef USE_EDITOR
+#include "EditorGame.h"
+#define PARENT_CLASS EditorGame
+#else
+#define PARENT_CLASS Game
+#endif
+
 using namespace MattEngine;
 
-class Demo : public MattEngine::Game {
+class Demo : public MattEngine::PARENT_CLASS {
 public:
-	Demo(MattEngine::Window& window) : Game(window) {}
+	Demo(MattEngine::Window& window) : PARENT_CLASS(window) {}
 
 private:
 	void createStack(
@@ -45,7 +52,7 @@ private:
 		MattEngine::Entity ball = getScene().createEntity();
 		ball.addComponent<TagComponent>("Ball");
 		ball.addComponent<TransformComponent>(
-			position + glm::rotate(cameraRotation, {0.0f, 0.0f, 1.0f}),
+			position + glm::rotate(cameraRotation, {0.0f, 0.0f, 5.0f}),
 			glm::vec3(size, size, size));
 		ball.addComponent<ColourComponent>(glm::vec3(1.0f, 0.0f, 0.0f));
 		ball.addComponent<TextureComponent>("assets/textures/wood.jpg");
@@ -64,6 +71,8 @@ private:
 
 public:
 	void onInit() override {
+		MattEngine::PARENT_CLASS::onInit();
+
 		MattEngine::Entity skybox = getScene().createEntity();
 		skybox.addComponent<SkyBoxComponent>("assets/textures/skybox");
 

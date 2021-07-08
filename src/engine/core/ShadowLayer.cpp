@@ -28,7 +28,7 @@ void ShadowLayer::onBeforeRender() {
 	Renderer& renderer = Renderer::getInstance();
 	Game& game = Game::getInstance();
 	Scene& scene = game.getScene();
-	Camera& camera = game.getCurrentCamera();
+	Camera& camera = game.getCamera();
 
 	glm::vec3 lightPosition = {0.0f, 10.0f, 0.0f};
 	glm::vec3 lightColour = {1.0f, 1.0f, 1.0f};

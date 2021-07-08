@@ -12,6 +12,8 @@ public:
 	void init(glm::vec3& position, glm::quat& rotation);
 	void onUpdate(float deltaTime);
 
+	void reset() { m_rotationController.reset(); }
+
 private:
 	glm::vec3* m_position;
 	glm::quat* m_rotation;

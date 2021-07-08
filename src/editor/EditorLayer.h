@@ -1,7 +1,8 @@
-#ifndef IMGUI_LAYER_H
-#define IMGUI_LAYER_H
+#ifndef EDITOR_LAYER_H
+#define EDITOR_LAYER_H
 
-#include "Entity.h"
+#include "ImGuiLayer.h"
+
 #include "ImGuiComponentEditor.h"
 #include "ImGuiEngineSettings.h"
 #include "ImGuiEntityList.h"
@@ -9,16 +10,16 @@
 #include "ImGuiMenuBar.h"
 #include "ImGuiPerspectiveCamera.h"
 #include "ImGuiViewport.h"
-#include "Layer.h"
-
-#include "imgui.h"
+#include "PerspectiveCamera.h"
 
 namespace MattEngine {
 
-class ImGuiLayer : public Layer {
+class EditorLayer : public ImGuiLayer {
 public:
 	void onInit() override;
-	void onAfterRender() override;
+	void onRender() override;
+	void onResize(unsigned int width, unsigned int height) override;
+	void onInactive(float deltaTime) override;
 
 private:
 	ImGuiCustom::FileBrowser m_fileBrowser;
@@ -27,6 +28,8 @@ private:
 	ImGuiCustom::Viewport m_gameViewport;
 	ImGuiCustom::MenuBar m_menuBar;
 	ImGuiCustom::EngineSettings m_engineSettings;
+	PerspectiveCamera m_editorCamera;
+	PerspectiveCamera* m_gameCamera;
 };
 } // namespace MattEngine
 

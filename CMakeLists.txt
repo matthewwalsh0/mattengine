@@ -62,23 +62,36 @@ include_directories(deps/yaml-cpp/include)
 add_subdirectory(deps/nativefiledialog-cmake)
 
 # mattengine
-file(GLOB_RECURSE SOURCES "src/engine/**.cpp" "src/engine/**.h", "src/editor/**.h", "src/editor/**.cpp", "deps/stb_image/*.cpp", "deps/stb_image/*.h")
+file(GLOB_RECURSE SOURCES "src/engine/**.cpp" "src/engine/**.h", "deps/stb_image/*.cpp", "deps/stb_image/*.h")
 include_directories(src/engine/core)
 include_directories(src/engine/entity)
 include_directories(src/engine/entity/components)
 include_directories(src/engine/renderer)
 include_directories(src/engine/renderer/camera)
-include_directories(src/editor)
-include_directories(src/editor/imgui)
 add_library(mattengine STATIC ${SOURCES} ${GLAD} ${IMGUI})
 target_link_libraries(mattengine glfw glm freetype assimp PhysXCharacterKinematic PhysXCommon PhysXCooking PhysXExtensions PhysXFoundation PhysXPvdSDK PhysXVehicle PhysX yaml-cpp "-framework AppKit" nativefiledialog )
+
+# mattengine editor
+file(GLOB_RECURSE EDITOR_SOURCES "src/editor/**.h", "src/editor/**.cpp")
+include_directories(src/editor)
+include_directories(src/editor/imgui)
+add_library(mattengine_editor STATIC ${EDITOR_SOURCES})
+target_link_libraries(mattengine_editor mattengine)
 
 # demo
 file(GLOB_RECURSE DEMO_SOURCES "src/demo/**.cpp" "src/demo/**.h")
 add_executable(demo ${DEMO_SOURCES})
 target_link_libraries(demo mattengine)
 
+add_executable(demo_editor ${DEMO_SOURCES})
+target_compile_definitions(demo_editor PUBLIC USE_EDITOR)
+target_link_libraries(demo_editor mattengine_editor)
+
 # physics demo
 file(GLOB_RECURSE PHYSICS_DEMO_SOURCES "src/demo_physics/**.cpp" "src/demo_physics/**.h")
 add_executable(demo_physics ${PHYSICS_DEMO_SOURCES})
 target_link_libraries(demo_physics mattengine)
+
+add_executable(demo_physics_editor ${PHYSICS_DEMO_SOURCES})
+target_compile_definitions(demo_physics_editor PUBLIC USE_EDITOR)
+target_link_libraries(demo_physics_editor mattengine_editor)

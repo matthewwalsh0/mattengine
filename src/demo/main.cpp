@@ -8,11 +8,20 @@
 #include "TextureComponent.h"
 #include "TransformComponent.h"
 
-class Demo : public MattEngine::Game {
+#ifdef USE_EDITOR
+#include "EditorGame.h"
+#define PARENT_CLASS EditorGame
+#else
+#define PARENT_CLASS Game
+#endif
+
+class Demo : public MattEngine::PARENT_CLASS {
 public:
-	Demo(MattEngine::Window& window) : Game(window) {}
+	Demo(MattEngine::Window& window) : MattEngine::PARENT_CLASS(window) {}
 
 	void onInit() override {
+		PARENT_CLASS::onInit();
+
 		MattEngine::Entity cube = getScene().createEntity();
 		cube.addComponent<TagComponent>("Cube");
 		cube.addComponent<TransformComponent>(
@@ -43,6 +52,8 @@ public:
 
 		MattEngine::Entity skybox = getScene().createEntity();
 		skybox.addComponent<SkyBoxComponent>("assets/textures/skybox");
+
+		getCamera().enableController(true);
 	}
 };
 

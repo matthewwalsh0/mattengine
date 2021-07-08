@@ -35,12 +35,6 @@ void EngineSettings::render() {
 		ImGui::Text("Game");
 		ImGui::Spacing();
 		m_perspectiveCamera.render(game.getCamera());
-		ImGui::Spacing();
-		ImGui::Separator();
-		ImGui::Spacing();
-		ImGui::Text("Editor");
-		ImGui::Spacing();
-		m_perspectiveCamera.render(game.getEditorCamera());
 	}
 
 	if (ImGui::CollapsingHeader("Shadows")) {

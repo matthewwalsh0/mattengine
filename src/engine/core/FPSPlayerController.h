@@ -18,6 +18,7 @@ public:
 	const glm::quat getRotation();
 
 	bool isInit() { return m_entity; }
+	void reset() { m_rotationController.reset(); }
 
 private:
 	Entity m_entity;

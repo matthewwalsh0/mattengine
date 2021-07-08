@@ -48,6 +48,7 @@ void PostProcessingLayer::onAfterRender() {
 		m_framebuffer->copy(*primaryFramebuffer);
 	}
 
+	primaryFramebuffer->copyToScreen();
 	m_framebuffer->unbind();
 }
 

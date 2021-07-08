@@ -24,6 +24,8 @@ public:
 	const glm::mat4& getView() override { return m_view; };
 	const glm::vec3& getPosition() override { return m_position; }
 	const glm::quat& getRotation() { return m_rotation; }
+	void reset() { m_controller.reset(); }
+	void enableController(bool enabled) { m_useController = enabled; }
 
 	const void setAspectRatio(float aspectRatio) override {
 		m_aspectRatio = aspectRatio;
@@ -56,6 +58,7 @@ public:
 	float m_farPlane = 1000.0f;
 	float m_aspectRatio = 1.0f;
 	float m_speed = 30.0f;
+	bool m_useController = false;
 	FlyCameraController m_controller;
 };
 

@@ -38,10 +38,11 @@ public:
 		return m_framebufferMultisampled;
 	}
 	Scene& getScene() { return m_scene; }
-	PerspectiveCamera& getCamera() { return m_camera; }
-	PerspectiveCamera& getEditorCamera() { return m_editorCamera; }
-	PerspectiveCamera& getCurrentCamera() {
-		return m_active ? m_camera : m_editorCamera;
+	PerspectiveCamera& getCamera() { return *m_camera; }
+	void setCamera(PerspectiveCamera& camera) {
+		m_camera = &camera;
+		m_camera->reset();
+		m_cameraChanged = true;
 	}
 	Physics& getPhysics() { return m_physics; }
 	ShadowLayer& getShadows() { return ((ShadowLayer&)*(m_layers[0])); }
@@ -52,8 +53,7 @@ public:
 	void play() { m_active = true; }
 	void pause() { m_active = false; }
 	bool isActive() { return m_active; }
-	void setFullscreen(bool fullscreen) { m_fullscreen = fullscreen; }
-	bool isFullscreen() { return m_fullscreen; }
+	void addLayer(Layer* layer) { m_layers.emplace_back(layer); }
 
 private:
 	void onUpdate(float deltaTime);
@@ -73,11 +73,11 @@ private:
 	Scene m_scene;
 	Framebuffer* m_framebuffer = nullptr;
 	Framebuffer* m_framebufferMultisampled = nullptr;
-	PerspectiveCamera m_camera = PerspectiveCamera();
-	PerspectiveCamera m_editorCamera = PerspectiveCamera();
+	PerspectiveCamera m_defaultCamera = PerspectiveCamera();
+	PerspectiveCamera* m_camera = &m_defaultCamera;
 	Physics m_physics;
-	bool m_active = false;
-	bool m_fullscreen = false;
+	bool m_active = true;
+	bool m_cameraChanged = false;
 
 public:
 	bool RenderPhysicsObjects = false;

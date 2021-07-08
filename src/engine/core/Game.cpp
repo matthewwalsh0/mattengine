@@ -32,7 +32,6 @@ Game::Game(Window& window) : m_window(window), m_title(window.getTitle()) {
 
 	m_layers.emplace_back(new ShadowLayer());
 	m_layers.emplace_back(new PostProcessingLayer());
-	m_layers.emplace_back(new ImGuiLayer());
 }
 
 void Game::resize(const glm::vec2& size) {
@@ -40,8 +39,7 @@ void Game::resize(const glm::vec2& size) {
 	renderer.setViewport({0.0f, 0.0f}, {size.x, size.y});
 
 	float aspectRatio = size.x / size.y;
-	m_camera.setAspectRatio(aspectRatio);
-	m_editorCamera.setAspectRatio(aspectRatio);
+	getCamera().setAspectRatio(aspectRatio);
 
 	m_framebufferMultisampled->resize(size.x, size.y);
 	m_framebuffer->resize(size.x, size.y);
@@ -58,10 +56,10 @@ void Game::start() {
 	renderer.init();
 	m_physics.init();
 
+	onInit();
+
 	for (auto& layer : m_layers)
 		(*layer).onInit();
-
-	onInit();
 
 	float currentTime = glfwGetTime();
 	float fpsCurrentTime = glfwGetTime();
@@ -87,12 +85,9 @@ void Game::start() {
 
 		const glm::vec2 windowSize = m_window.getSize();
 
-		if (m_fullscreen &&
-			m_framebufferMultisampled->getSize() != windowSize) {
+		if (m_framebufferMultisampled->getSize() != windowSize) {
 			resize(windowSize);
 		}
-
-		Camera* camera = &m_camera;
 
 		if (m_active) {
 			onUpdate(deltaTime);
@@ -100,18 +95,14 @@ void Game::start() {
 			for (auto& layer : m_layers)
 				(*layer).onUpdate();
 		} else {
-			m_editorCamera.onUpdate(deltaTime);
-			camera = &m_editorCamera;
+			for (auto& layer : m_layers)
+				(*layer).onInactive(deltaTime);
 		}
 
 		for (auto& layer : m_layers)
 			(*layer).onBeforeRender();
 
-		renderPass(*camera);
-
-		if (!m_fullscreen) {
-			renderer.clear();
-		}
+		renderPass(getCamera());
 
 		for (auto& layer : m_layers)
 			(*layer).onAfterRender();
@@ -196,6 +187,10 @@ void Game::onUpdate(float deltaTime) {
 				playerController.Controller.init(wrappedEntity);
 			}
 
+			if (m_cameraChanged) {
+				playerController.Controller.reset();
+			}
+
 			playerController.Controller.onUpdate(deltaTime);
 		});
 
@@ -206,11 +201,11 @@ void Game::onUpdate(float deltaTime) {
 			glm::vec3 cameraDirection = glm::normalize(glm::rotate(
 				perspectiveCamera.Rotation, glm::vec3(0.0f, 0.0f, 1.0f)));
 
-			m_camera.setPosition(
+			getCamera().setPosition(
 				glm::vec3(transform.Position.x, transform.Position.y + 1.0f,
 					transform.Position.z) +
 				(cameraDirection * -5.0f));
-			m_camera.setRotation(perspectiveCamera.Rotation);
+			getCamera().setRotation(perspectiveCamera.Rotation);
 		});
 
 	scene.getRegistry().view<RigidBodyComponent, TransformComponent>().each(
@@ -252,6 +247,12 @@ void Game::onUpdate(float deltaTime) {
 
 			animation.Animator.onUpdate(deltaTime);
 		});
+
+	if (m_active) {
+		getCamera().onUpdate(deltaTime);
+	}
+
+	m_cameraChanged = false;
 }
 
 void Game::renderPass(Camera& camera) {
@@ -384,12 +385,9 @@ void Game::renderPass(Camera& camera) {
 			});
 	}
 
-	if (m_fullscreen) {
-		m_framebufferMultisampled->copyToScreen();
-	} else {
-		m_framebufferMultisampled->copy(*m_framebuffer);
-	}
-	m_framebuffer->unbind();
+	m_framebufferMultisampled->copyToScreen();
+	m_framebufferMultisampled->copy(*m_framebuffer);
+	m_framebufferMultisampled->unbind();
 }
 
 } // namespace MattEngine

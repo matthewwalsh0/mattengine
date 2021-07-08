@@ -10,6 +10,7 @@ public:
 	virtual void onBeforeRender(){};
 	virtual void onAfterRender(){};
 	virtual void onResize(unsigned int width, unsigned int height){};
+	virtual void onInactive(float deltaTime){};
 	virtual ~Layer(){};
 };
 

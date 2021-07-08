@@ -15,6 +15,11 @@ void MouseRotationCameraController::init(glm::quat& rotation) {
 		glm::radians(m_rotationEulerDegrees.z)));
 }
 
+void MouseRotationCameraController::reset() {
+	m_firstUpdate = true;
+	Window::getInstance().resetMouseTracking();
+}
+
 void MouseRotationCameraController::onUpdate(float deltaTime) {
 	Window& window = Window::getInstance();
 
