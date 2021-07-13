@@ -100,3 +100,7 @@ void Shader::setBool(const std::string& name, bool value) {
 void Shader::setInt(const std::string& name, int value) {
 	glUniform1i(glGetUniformLocation(ShaderId, name.c_str()), value);
 }
+
+void Shader::setFloat(const std::string& name, float value) {
+	glUniform1f(glGetUniformLocation(ShaderId, name.c_str()), value);
+}

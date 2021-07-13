@@ -25,6 +25,23 @@ void EngineSettings::render() {
 
 		ImGui::Checkbox("Grayscale", &postProcessing.Grayscale);
 		ImGui::Checkbox("Invert", &postProcessing.Invert);
+		ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::Spacing();
+		ImGui::Text("Bloom");
+		ImGui::Spacing();
+		ImGui::Checkbox("Enabled", &postProcessing.Bloom);
+		ImGui::SliderFloat(
+			"Threshold", &postProcessing.BloomThreshold, 0.01, 1.0);
+		ImGui::SliderInt(
+			"Blur Passes", (int*)&postProcessing.BloomBlurPasses, 1, 100);
+
+		if (ImGui::SliderFloat(
+				"Blur Size", &postProcessing.BloomBlurSize, 0.01, 1.0)) {
+			game.resize(game.getFramebuffer()->getSize());
+		}
+
+		ImGui::Spacing();
 	}
 
 	if (ImGui::CollapsingHeader("Physics")) {

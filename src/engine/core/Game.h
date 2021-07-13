@@ -78,6 +78,7 @@ private:
 	Physics m_physics;
 	bool m_active = true;
 	bool m_cameraChanged = false;
+	bool m_firstResize = false;
 
 public:
 	bool RenderPhysicsObjects = false;

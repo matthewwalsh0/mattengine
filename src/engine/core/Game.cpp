@@ -83,10 +83,10 @@ void Game::start() {
 			fpsCurrentTime = newTime;
 		}
 
-		const glm::vec2 windowSize = m_window.getSize();
-
-		if (m_framebufferMultisampled->getSize() != windowSize) {
+		if (!m_firstResize) {
+			const glm::vec2 windowSize = m_window.getSize();
 			resize(windowSize);
+			m_firstResize = true;
 		}
 
 		if (m_active) {

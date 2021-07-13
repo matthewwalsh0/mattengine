@@ -47,7 +47,7 @@ public:
 		floor.addComponent<TagComponent>("Floor");
 		floor.addComponent<TransformComponent>(
 			glm::vec3(0.0f, -3.0f, 0.0f), glm::vec3(100.0f, 0.01f, 100.0f));
-		floor.addComponent<ColourComponent>(glm::vec3(1.0f, 1.0f, 1.0f));
+		floor.addComponent<ColourComponent>(glm::vec3(0.8f, 0.8f, 0.8f));
 		floor.addComponent<TextureComponent>("assets/textures/floor.png", 50);
 
 		MattEngine::Entity skybox = getScene().createEntity();

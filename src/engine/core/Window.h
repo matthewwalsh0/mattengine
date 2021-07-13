@@ -30,6 +30,7 @@ public:
 	const bool hasMouseMoved() const { return m_mouseMoved; }
 	void setFocused(bool value) { m_focused = value; }
 	void resetMouseTracking() { m_mouseMoved = false; }
+	void setAutoResize(bool enabled) { m_autoResize = enabled; }
 
 public:
 	inline static Window& getInstance() { return *s_instance; }
@@ -43,6 +44,7 @@ private:
 	bool m_mouseLeftDown = false;
 	bool m_mouseRightDown = false;
 	bool m_focused = true;
+	bool m_autoResize = true;
 
 private:
 	inline static Window* s_instance;

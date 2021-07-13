@@ -23,6 +23,6 @@ in vec3 v_TexturePosition;
 uniform samplerCube u_Texture;
 
 void main() {
-	float skyboxBrightness = 1.0;
+	float skyboxBrightness = 0.3;
 	f_Colour = texture(u_Texture, v_TexturePosition) * skyboxBrightness;
 }

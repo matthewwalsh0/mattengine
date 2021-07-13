@@ -107,24 +107,20 @@ void Renderer::drawCube(DrawCubeRequest& request) {
 
 	m_cube->bind();
 
-	if (!request.Manual) {
-		if (request.DepthOnly) {
-			m_shaderShadow.bind();
-			m_shaderShadow.setMat4("u_Model", model);
-		} else {
-			m_shader.bind();
-			m_shader.setMat4("u_Model", model);
-			m_shader.setVec3("u_Colour", request.Colour);
-			m_shader.setInt("u_TileCount", request.TileCount);
-
-			if (request.Texture) {
-				request.Texture->bind();
-			} else {
-				m_defaultTexture.bind();
-			}
-		}
+	if (request.DepthOnly) {
+		m_shaderShadow.bind();
+		m_shaderShadow.setMat4("u_Model", model);
 	} else {
-		m_quad->bind();
+		m_shader.bind();
+		m_shader.setMat4("u_Model", model);
+		m_shader.setVec3("u_Colour", request.Colour);
+		m_shader.setInt("u_TileCount", request.TileCount);
+
+		if (request.Texture) {
+			request.Texture->bind();
+		} else {
+			m_defaultTexture.bind();
+		}
 	}
 
 	glDrawArrays(GL_TRIANGLES, 0, 36);
@@ -244,6 +240,12 @@ void Renderer::drawCameraBounds(Camera& camera, const glm::vec3& colour) {
 		cameraBounds[3], cameraBounds[4], cameraBounds[7],
 	}, colour);
 	/// clang-format on
+}
+
+void Renderer::drawFramebuffer(Framebuffer& source) {
+	Texture(source.getColourTextureId()).bind(1);
+	m_quad->bind();
+	glDrawArrays(GL_TRIANGLES, 0, 36);
 }
 
 } // namespace MattEngine

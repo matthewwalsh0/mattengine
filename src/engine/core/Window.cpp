@@ -12,6 +12,10 @@ namespace MattEngine {
 void windowResizeCallback(GLFWwindow* window, int width, int height) {
 	Window& instance = Window::getInstance();
 	instance.m_size = {width, height};
+
+	if (instance.m_autoResize) {
+		Game::getInstance().resize({width, height});
+	}
 }
 
 void mouseCursorCallback(GLFWwindow* window, double x, double y) {
