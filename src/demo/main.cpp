@@ -3,6 +3,7 @@
 #include "Game.h"
 #include "LightComponent.h"
 #include "ModelComponent.h"
+#include "PointLightComponent.h"
 #include "SkyBoxComponent.h"
 #include "TagComponent.h"
 #include "TextureComponent.h"
@@ -38,10 +39,11 @@ public:
 
 		MattEngine::Entity light = getScene().createEntity();
 		light.addComponent<TagComponent>("Light");
-		light.addComponent<TransformComponent>(
-			glm::vec3(-2.0f, 2.5f, 1.0f), glm::vec3(0.5f, 0.5f, 0.5f));
-		light.addComponent<ColourComponent>(glm::vec3(1.0f, 1.0f, 1.0f));
-		light.addComponent<LightComponent>();
+		PointLight pointLight;
+		pointLight.Position.x = -0.01f;
+		pointLight.Linear = 0.005f;
+		pointLight.Quadratic = 0.005f;
+		light.addComponent<PointLightComponent>(pointLight);
 
 		MattEngine::Entity floor = getScene().createEntity();
 		floor.addComponent<TagComponent>("Floor");

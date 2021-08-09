@@ -67,12 +67,23 @@ const float SPECULAR_SHININESS = 32;
 const int DEPTH_MAP_COUNT = 4;
 const float SHADOW_BIAS = 0.05;
 const float SHADOW_COLOUR = 0.2;
+const int MAX_POINT_LIGHTS = 4;
+
+struct PointLight {
+	vec3 position;
+
+	float constant;
+	float linear;
+	float quadratic;
+
+	vec3 ambient;
+	vec3 diffuse;
+	vec3 specular;
+};
 
 layout(location = 0) out vec4 color;
 
 uniform vec3 u_Colour;
-uniform vec3 u_LightPosition;
-uniform vec3 u_LightColour;
 uniform bool u_IsLight = false;
 uniform int u_TileCount = 1;
 uniform vec3 u_ViewPosition;
@@ -81,6 +92,8 @@ uniform sampler2D u_DepthMap[DEPTH_MAP_COUNT];
 uniform vec3 u_DepthMapFarPlane[DEPTH_MAP_COUNT];
 uniform vec3 u_DepthMapColour[DEPTH_MAP_COUNT];
 uniform mat4 u_LightSpaceMatrix[DEPTH_MAP_COUNT];
+uniform PointLight u_PointLights[MAX_POINT_LIGHTS];
+uniform int u_PointLightCount;
 
 in vec3 v_Normal;
 in vec3 v_PositionWorld;
@@ -88,25 +101,37 @@ in mat4 v_Model;
 in vec2 v_TexturePosition;
 in vec3 v_PositionClip;
 
-vec3 calculateLight() {
-	vec3 normal = normalize(v_Normal);
-	vec3 lightDirection = normalize(u_LightPosition - v_PositionWorld);
+vec3 calculatePointLight(
+	PointLight light, vec3 normal, vec3 fragmentPosition, vec3 viewDirection) {
+	vec3 lightDirection = normalize(light.position - fragmentPosition);
+	float distance = length(light.position - fragmentPosition);
+	float attenuation = 1.0 / (light.constant + light.linear * distance +
+								  light.quadratic * (distance * distance));
 
-	// Ambient
-	vec3 ambient = AMBIENT_INTENSITY * vec3(1.0, 1.0, 1.0);
+	vec3 ambient = light.ambient * attenuation;
 
-	// Diffuse
-	float diffuseStrength = max(dot(normal, lightDirection), 0.0);
-	vec3 diffuse = diffuseStrength * u_LightColour;
+	float diffuseStrength = max(dot(normal, lightDirection), 0.1f);
+	vec3 diffuse = light.diffuse * diffuseStrength * attenuation;
 
-	// Specular
-	vec3 viewDirection = normalize(u_ViewPosition - v_PositionWorld);
 	vec3 reflectDirection = reflect(-lightDirection, normal);
 	float specularStrength =
 		pow(max(dot(viewDirection, reflectDirection), 0.0), SPECULAR_SHININESS);
-	vec3 specular = SPECULAR_INTENSITY * specularStrength * u_LightColour;
+	vec3 specular = light.specular * specularStrength * attenuation;
 
 	return ambient + diffuse + specular;
+}
+
+vec3 calculateLight() {
+	vec3 totalLight = vec3(0.0, 0.0, 0.0);
+	vec3 normal = normalize(v_Normal);
+	vec3 viewDirection = normalize(u_ViewPosition - v_PositionWorld);
+
+	for (int i = 0; i < u_PointLightCount; i++) {
+		totalLight += calculatePointLight(
+			u_PointLights[i], normal, v_PositionWorld, viewDirection);
+	}
+
+	return totalLight;
 }
 
 vec4 calculateShadow() {

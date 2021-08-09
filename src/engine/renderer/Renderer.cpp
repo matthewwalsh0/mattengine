@@ -45,7 +45,8 @@ void Renderer::init() {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-void Renderer::beginFrame(Camera& camera, Light& light) {
+void Renderer::beginFrame(
+	Camera& camera, std::vector<PointLight*>& pointLights) {
 	m_shader.bind();
 	m_shader.setMat4("u_View", camera.getView());
 	m_shader.setMat4("u_Projection", camera.getProjection());
@@ -53,8 +54,24 @@ void Renderer::beginFrame(Camera& camera, Light& light) {
 	m_shader.setVec3("u_Colour", glm::vec3(1.0f, 1.0f, 1.0f));
 	m_shader.setInt("u_Texture", 0);
 	m_shader.setInt("u_TileCount", 1);
-	m_shader.setVec3("u_LightPosition", light.getPosition());
-	m_shader.setVec3("u_LightColour", light.getColour());
+
+	for (int i = 0; i < pointLights.size(); i++) {
+		m_shader.setVec3(
+			"u_PointLights", i, "position", pointLights[i]->Position);
+		m_shader.setVec3(
+			"u_PointLights", i, "ambient", pointLights[i]->Ambient);
+		m_shader.setVec3(
+			"u_PointLights", i, "diffuse", pointLights[i]->Diffuse);
+		m_shader.setVec3(
+			"u_PointLights", i, "specular", pointLights[i]->Specular);
+		m_shader.setFloat(
+			"u_PointLights", i, "constant", pointLights[i]->Constant);
+		m_shader.setFloat("u_PointLights", i, "linear", pointLights[i]->Linear);
+		m_shader.setFloat(
+			"u_PointLights", i, "quadratic", pointLights[i]->Quadratic);
+	}
+
+	m_shader.setInt("u_PointLightCount", pointLights.size());
 
 	for (int i = 0; i < 100; ++i)
 		m_shader.setMat4("u_BoneTransforms[" + std::to_string(i) + "]",

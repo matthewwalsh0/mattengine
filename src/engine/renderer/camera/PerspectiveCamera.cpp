@@ -1,5 +1,7 @@
 #include "PerspectiveCamera.h"
 
+#include "ModelComponent.h"
+#include "ModelStore.h"
 #include "Scene.h"
 #include "TransformComponent.h"
 #include "Window.h"
@@ -80,9 +82,35 @@ OrthoCamera PerspectiveCamera::getBoundingOrtho(
 		if (!entity.hasComponent<TransformComponent>())
 			continue;
 
+		if (entity.getComponent<TagComponent>().Tag == "Floor")
+			continue;
+
+		TransformComponent& transform =
+			entity.getComponent<TransformComponent>();
+
 		glm::vec3 lightPosition =
-			lightSpaceMatrix *
-			glm::vec4(entity.getComponent<TransformComponent>().Position, 1.0);
+			lightSpaceMatrix * glm::vec4(transform.Position, 1.0);
+
+		float offset = 0;
+
+		if (entity.hasComponent<ModelComponent>()) {
+			ModelComponent& modelComponent =
+				entity.getComponent<ModelComponent>();
+			Model model =
+				ModelStore::getInstance().getModel(modelComponent.Path);
+
+			float width = model.Bounds[MODEL_BOUND_RIGHT] -
+						  model.Bounds[MODEL_BOUND_LEFT];
+			float height = model.Bounds[MODEL_BOUND_TOP] -
+						   model.Bounds[MODEL_BOUND_BOTTOM];
+
+			offset =
+				((width * transform.Size.x) + (height * transform.Size.y)) / 2;
+		} else {
+			offset = (transform.Size.x + transform.Size.y) / 2;
+		}
+
+		lightPosition.z += offset + 1;
 
 		if (lightPosition.z > front) {
 			front = lightPosition.z;

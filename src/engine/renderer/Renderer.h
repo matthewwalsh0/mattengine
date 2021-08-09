@@ -3,10 +3,10 @@
 
 #include "CubeMap.h"
 #include "Framebuffer.h"
-#include "Light.h"
 #include "Mesh.h"
 #include "Model.h"
 #include "OrthoCamera.h"
+#include "PointLight.h"
 #include "Shader.h"
 #include "Texture.h"
 
@@ -59,7 +59,7 @@ public:
 class Renderer {
 public:
 	void init();
-	void beginFrame(Camera& camera, Light& light);
+	void beginFrame(Camera& camera, std::vector<PointLight*>& pointLights);
 	void beginShadowFrame(Camera& camera, Camera& shadowCamera,
 		int depthMapIndex, float depthMapFarPlane,
 		glm::vec3 cascadeIndicatorColour);

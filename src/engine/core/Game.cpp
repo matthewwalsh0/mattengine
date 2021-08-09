@@ -10,6 +10,7 @@
 #include "ModelStore.h"
 #include "PerspectiveCameraComponent.h"
 #include "PlayerControllerComponent.h"
+#include "PointLightComponent.h"
 #include "PostProcessingLayer.h"
 #include "RigidBodyComponent.h"
 #include "ScriptComponent.h"
@@ -261,21 +262,14 @@ void Game::renderPass(Camera& camera) {
 
 	m_framebufferMultisampled->bind();
 
-	glm::vec3 lightPosition = {0.0f, 10.0f, 0.0f};
-	glm::vec3 lightColour = {1.0f, 1.0f, 1.0f};
-	Entity light = scene.getEntity("Light");
+	std::vector<PointLight*> pointLights;
 
-	if (light && light.hasComponent<TransformComponent>()) {
-		lightPosition = light.getComponent<TransformComponent>().Position;
-	}
+	scene.getRegistry().view<PointLightComponent>().each(
+		[&](PointLightComponent& pointLight) {
+			pointLights.push_back(&pointLight.Light);
+		});
 
-	if (light && light.hasComponent<ColourComponent>()) {
-		lightColour = light.getComponent<ColourComponent>().Colour;
-	}
-
-	Light mainLight(lightPosition, lightColour);
-
-	renderer.beginFrame(camera, mainLight);
+	renderer.beginFrame(camera, pointLights);
 
 	renderer.setViewport(
 		{0.0f, 0.0f}, {m_framebuffer->getWidth(), m_framebuffer->getHeight()});

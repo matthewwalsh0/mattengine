@@ -2,6 +2,7 @@
 
 #include "AnimationComponent.h"
 #include "ColourComponent.h"
+#include "PointLightComponent.h"
 #include "TextureComponent.h"
 #include "TransformComponent.h"
 
@@ -93,6 +94,33 @@ void ComponentEditor::render(Entity& entity, bool newEntity) {
 				BoneNode(*animation.Animation->Skeleton);
 				ImGui::TreePop();
 			}
+		}
+	}
+
+	if (entity.hasComponent<PointLightComponent>()) {
+		if (ImGui::CollapsingHeader(
+				"Point Light", ImGuiTreeNodeFlags_DefaultOpen)) {
+
+			PointLightComponent& pointLight =
+				entity.getComponent<PointLightComponent>();
+
+			ImGui::DragFloat3("Position",
+				glm::value_ptr(pointLight.Light.Position), 0.1f, -1000.0f,
+				1000.0f);
+
+			ImGui::ColorEdit3(
+				"Ambient", glm::value_ptr(pointLight.Light.Ambient));
+			ImGui::ColorEdit3(
+				"Diffuse", glm::value_ptr(pointLight.Light.Diffuse));
+			ImGui::ColorEdit3(
+				"Specular", glm::value_ptr(pointLight.Light.Specular));
+
+			ImGui::DragFloat(
+				"Constant", &pointLight.Light.Constant, 0.005f, 0.0f, 1.0f);
+			ImGui::DragFloat(
+				"Linear", &pointLight.Light.Linear, 0.005f, 0.0f, 1.0f);
+			ImGui::DragFloat(
+				"Quadratic", &pointLight.Light.Quadratic, 0.005f, 0.0f, 1.0f);
 		}
 	}
 

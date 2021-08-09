@@ -5,6 +5,7 @@
 #include "ModelComponent.h"
 #include "ModelStore.h"
 #include "PerspectiveCamera.h"
+#include "PointLightComponent.h"
 #include "Renderer.h"
 #include "Scene.h"
 #include "TextureComponent.h"
@@ -31,15 +32,11 @@ void ShadowLayer::onBeforeRender() {
 	Camera& camera = game.getCamera();
 
 	glm::vec3 lightPosition = {0.0f, 10.0f, 0.0f};
-	glm::vec3 lightColour = {1.0f, 1.0f, 1.0f};
 	Entity light = scene.getEntity("Light");
 
-	if (light && light.hasComponent<TransformComponent>()) {
-		lightPosition = light.getComponent<TransformComponent>().Position;
-	}
-
-	if (light && light.hasComponent<ColourComponent>()) {
-		lightColour = light.getComponent<ColourComponent>().Colour;
+	if (light && light.hasComponent<PointLightComponent>()) {
+		lightPosition =
+			light.getComponent<PointLightComponent>().Light.Position;
 	}
 
 	for (int depthMapIndex = 0; depthMapIndex < DepthMapCount;

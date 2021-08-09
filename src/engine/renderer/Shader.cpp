@@ -93,6 +93,20 @@ void Shader::setVec3(const std::string& name, const glm::vec3& value) {
 		value.z);
 }
 
+void Shader::setVec3(
+	const std::string& name, const unsigned int index, const glm::vec3& value) {
+	std::string key = name + "[" + std::to_string(index) + "]";
+	glUniform3f(
+		glGetUniformLocation(ShaderId, key.c_str()), value.x, value.y, value.z);
+}
+
+void Shader::setVec3(const std::string& name, const unsigned int index,
+	const std::string& property, const glm::vec3& value) {
+	std::string key = name + "[" + std::to_string(index) + "]." + property;
+	glUniform3f(
+		glGetUniformLocation(ShaderId, key.c_str()), value.x, value.y, value.z);
+}
+
 void Shader::setBool(const std::string& name, bool value) {
 	glUniform1i(glGetUniformLocation(ShaderId, name.c_str()), value);
 }
@@ -103,4 +117,16 @@ void Shader::setInt(const std::string& name, int value) {
 
 void Shader::setFloat(const std::string& name, float value) {
 	glUniform1f(glGetUniformLocation(ShaderId, name.c_str()), value);
+}
+
+void Shader::setFloat(
+	const std::string& name, const unsigned int index, float value) {
+	std::string key = name + "[" + std::to_string(index) + "]";
+	glUniform1f(glGetUniformLocation(ShaderId, key.c_str()), value);
+}
+
+void Shader::setFloat(const std::string& name, const unsigned int index,
+	const std::string& property, float value) {
+	std::string key = name + "[" + std::to_string(index) + "]." + property;
+	glUniform1f(glGetUniformLocation(ShaderId, key.c_str()), value);
 }
