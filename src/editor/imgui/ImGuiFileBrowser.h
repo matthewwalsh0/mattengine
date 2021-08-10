@@ -12,7 +12,7 @@ public:
 private:
 	std::filesystem::path m_rootPath = ".";
 	std::filesystem::path m_currentPath = m_rootPath;
-	int m_columnCount = 5;
+	int m_thumbnailWidth = 80;
 };
 
 } // namespace ImGuiCustom

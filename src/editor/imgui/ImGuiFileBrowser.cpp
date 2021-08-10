@@ -80,8 +80,14 @@ void FileBrowser::render() {
 
 		int x = 0;
 
-		if (ImGui::BeginTable(
-				"Files", m_columnCount, ImGuiTableFlags_ScrollY)) {
+		float tableWidth = ImGui::GetContentRegionAvail().x;
+		int columnCount = tableWidth / m_thumbnailWidth;
+
+		ImVec2 cellPadding(10.0f, 10.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, cellPadding);
+
+		if (ImGui::BeginTable("Files", columnCount,
+				ImGuiTableFlags_ScrollY | ImGuiTableFlags_PadOuterX)) {
 			ImGui::TableNextRow();
 
 			for (const auto& entry :
@@ -142,7 +148,7 @@ void FileBrowser::render() {
 
 					x++;
 
-					if (x == m_columnCount) {
+					if (x == columnCount) {
 						ImGui::TableNextRow();
 						x = 0;
 					}
@@ -151,6 +157,7 @@ void FileBrowser::render() {
 		}
 
 		ImGui::EndTable();
+		ImGui::PopStyleVar();
 	}
 
 	ImGui::EndTable();
