@@ -17,6 +17,7 @@ public:
 private:
 	glm::vec3* m_position;
 	glm::quat* m_rotation;
+	glm::vec3 m_limits = glm::vec3(100.0f);
 	float m_speed = 30.0f;
 	MouseRotationCameraController m_rotationController;
 };

@@ -54,8 +54,8 @@ public:
 	glm::mat4 m_projection;
 	glm::mat4 m_view;
 	float m_angle = 45.0f;
-	float m_nearPlane = 0.01f;
-	float m_farPlane = 1000.0f;
+	float m_nearPlane = 0.3f;
+	float m_farPlane = 500.0f;
 	float m_aspectRatio = 1.0f;
 	float m_speed = 30.0f;
 	bool m_useController = false;

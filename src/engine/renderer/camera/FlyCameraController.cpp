@@ -38,5 +38,23 @@ void FlyCameraController::onUpdate(float deltaTime) {
 			glm::normalize(glm::cross(direction, up)) * deltaTime * m_speed;
 	}
 
+	if (m_position->x > m_limits.x) {
+		m_position->x = m_limits.x;
+	} else if (m_position->x < -m_limits.x) {
+		m_position->x = -m_limits.x;
+	}
+
+	if (m_position->y > m_limits.y) {
+		m_position->y = m_limits.y;
+	} else if (m_position->y < -m_limits.y) {
+		m_position->y = -m_limits.y;
+	}
+
+	if (m_position->z > m_limits.z) {
+		m_position->z = m_limits.z;
+	} else if (m_position->z < -m_limits.z) {
+		m_position->z = -m_limits.z;
+	}
+
 	m_rotationController.onUpdate(deltaTime);
 }
