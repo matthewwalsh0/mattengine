@@ -310,7 +310,10 @@ void Game::renderPass(Camera& camera) {
 			request.Colour = colour.Colour;
 			request.Texture =
 				&TextureStore::getInstance().getTexture(texture.Path);
-			request.TileCount = texture.TileCount;
+
+			request.TileCount = texture.UseTileSize
+									? request.Size.x / texture.TileSize
+									: texture.TileCount;
 
 			renderer.drawCube(request);
 		});

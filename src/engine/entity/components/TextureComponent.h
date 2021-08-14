@@ -6,8 +6,10 @@
 using namespace MattEngine;
 
 struct TextureComponent {
-	std::string Path = "";
+	std::string Path = "assets/textures/missing.png";
+	bool UseTileSize = false;
 	unsigned int TileCount = 1;
+	float TileSize = 1.0f;
 
 	TextureComponent() {}
 	TextureComponent(const std::string path) : Path(path) {}
