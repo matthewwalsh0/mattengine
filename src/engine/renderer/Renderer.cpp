@@ -259,8 +259,7 @@ void Renderer::drawCameraBounds(Camera& camera, const glm::vec3& colour) {
 	/// clang-format on
 }
 
-void Renderer::drawFramebuffer(Framebuffer& source) {
-	Texture(source.getColourTextureId()).bind(1);
+void Renderer::drawFramebuffer() {
 	m_quad->bind();
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 }

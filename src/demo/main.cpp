@@ -27,7 +27,7 @@ public:
 		cube.addComponent<TagComponent>("Cube");
 		cube.addComponent<TransformComponent>(
 			glm::vec3(-1.0f, 0.5f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
-		cube.addComponent<ColourComponent>(glm::vec3(1.0f, 1.0f, 1.0f));
+		cube.addComponent<ColourComponent>(glm::vec3(1.0f));
 		cube.addComponent<TextureComponent>("assets/textures/wood.jpg");
 
 		MattEngine::Entity model = getScene().createEntity();
@@ -39,10 +39,14 @@ public:
 
 		MattEngine::Entity light = getScene().createEntity();
 		light.addComponent<TagComponent>("Light");
+
 		PointLight pointLight;
 		pointLight.Position.x = -0.01f;
-		pointLight.Linear = 0.005f;
-		pointLight.Quadratic = 0.005f;
+		pointLight.Ambient = glm::vec3(1.0f);
+		pointLight.Diffuse = glm::vec3(0.0f);
+		pointLight.Specular = glm::vec3(0.0f);
+		pointLight.Linear = 0.000f;
+		pointLight.Quadratic = 0.000f;
 		light.addComponent<PointLightComponent>(pointLight);
 
 		MattEngine::Entity floor = getScene().createEntity();

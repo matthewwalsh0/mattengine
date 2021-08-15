@@ -6,6 +6,7 @@
 #include "ModelStore.h"
 #include "PerspectiveCameraComponent.h"
 #include "PlayerControllerComponent.h"
+#include "PointLightComponent.h"
 #include "RigidBodyComponent.h"
 #include "SkyBoxComponent.h"
 #include "TextureComponent.h"
@@ -35,7 +36,7 @@ private:
 								  (stackSize * (boxSize / 2)),
 						y * boxSize + (boxSize / 2), 0.0f),
 					glm::vec3(boxSize, boxSize, boxSize));
-				box.addComponent<ColourComponent>(glm::vec3(1.0f, 1.0f, 1.0f));
+				box.addComponent<ColourComponent>(glm::vec3(1.0f));
 				box.addComponent<TextureComponent>("assets/textures/wood.jpg");
 				box.addComponent<RigidBodyComponent>();
 			}
@@ -81,7 +82,16 @@ public:
 		light.addComponent<TransformComponent>(
 			glm::vec3(0.0f, 200.0f, 30.0f), glm::vec3(0.5f, 0.5f, 0.5f));
 		light.addComponent<ColourComponent>(glm::vec3(1.0f, 1.0f, 1.0f));
-		light.addComponent<LightComponent>();
+
+		PointLight pointLight;
+		pointLight.Position.x = -0.01f;
+		pointLight.Ambient = glm::vec3(1.0f);
+		pointLight.Diffuse = glm::vec3(0.0f);
+		pointLight.Specular = glm::vec3(0.0f);
+		pointLight.Linear = 0.000f;
+		pointLight.Quadratic = 0.000f;
+
+		light.addComponent<PointLightComponent>(pointLight);
 
 		MattEngine::Entity floor = getScene().createEntity();
 		floor.addComponent<TagComponent>("Floor");

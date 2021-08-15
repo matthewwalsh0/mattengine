@@ -16,15 +16,14 @@ void main() {
 
 layout(location = 0) out vec4 color;
 
-uniform sampler2D u_Texture_1;
-uniform sampler2D u_Texture_2;
+uniform sampler2D u_Texture;
+uniform float u_Exposure;
 
 in vec2 v_TexturePosition;
 
 void main() {
-	vec3 value_1 = texture(u_Texture_1, v_TexturePosition).rgb;
-	vec3 value_2 = texture(u_Texture_2, v_TexturePosition).rgb;
-	vec3 total = value_1 + value_2;
+	vec3 hdrColour = texture(u_Texture, v_TexturePosition).rgb;
+	vec3 ldrColour = vec3(1.0) - exp(-hdrColour * u_Exposure);
 
-	color = vec4(total, 1.0);
+	color = vec4(ldrColour, 1.0);
 }

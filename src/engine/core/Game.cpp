@@ -292,10 +292,9 @@ void Game::renderPass(Camera& camera) {
 			renderer.drawLight(request);
 		});
 
-	scene.getRegistry()
-		.view<TransformComponent, ColourComponent, TextureComponent>()
-		.each([&](auto rawEntity, TransformComponent& transform,
-				  ColourComponent& colour, TextureComponent& texture) {
+	scene.getRegistry().view<TransformComponent, ColourComponent>().each(
+		[&](auto rawEntity, TransformComponent& transform,
+			ColourComponent& colour) {
 			Entity actualEntity = scene.createEntity(rawEntity);
 
 			if (RenderPhysicsObjects &&
@@ -307,13 +306,22 @@ void Game::renderPass(Camera& camera) {
 			request.Position = transform.Position;
 			request.Size = transform.Size;
 			request.Rotation = transform.Rotation;
-			request.Colour = colour.Colour;
-			request.Texture =
-				&TextureStore::getInstance().getTexture(texture.Path);
+			request.Colour =
+				!colour.Emissive
+					? colour.Colour
+					: (colour.Intensity * glm::vec3(1.0f)) + colour.Colour;
 
-			request.TileCount = texture.UseTileSize
-									? request.Size.x / texture.TileSize
-									: texture.TileCount;
+			if (actualEntity.hasComponent<TextureComponent>()) {
+				TextureComponent& texture =
+					actualEntity.getComponent<TextureComponent>();
+
+				request.Texture =
+					&TextureStore::getInstance().getTexture(texture.Path);
+
+				request.TileCount = texture.UseTileSize
+										? request.Size.x / texture.TileSize
+										: texture.TileCount;
+			}
 
 			renderer.drawCube(request);
 		});

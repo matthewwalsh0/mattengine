@@ -11,6 +11,9 @@ void EngineSettings::render() {
 	Game& game = Game::getInstance();
 
 	if (ImGui::CollapsingHeader("Post-Processing")) {
+		ImGui::Text("Anti-Aliasing");
+		ImGui::Spacing();
+
 		Framebuffer* framebufferMultisampled =
 			game.getFramebufferMultisampled();
 
@@ -23,24 +26,47 @@ void EngineSettings::render() {
 			framebufferMultisampled->setSamples(samples);
 		}
 
-		ImGui::Checkbox("Grayscale", &postProcessing.Grayscale);
-		ImGui::Checkbox("Invert", &postProcessing.Invert);
+		ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::Spacing();
+		ImGui::Text("Tone Mapping");
+		ImGui::Checkbox(
+			"Enabled##ToneMappingEnabled", &postProcessing.ToneMapping);
+
+		if (postProcessing.ToneMapping) {
+			ImGui::DragFloat(
+				"Exposure", &postProcessing.Exposure, 0.01f, 0.01f, 20.0f);
+		}
+
 		ImGui::Spacing();
 		ImGui::Separator();
 		ImGui::Spacing();
 		ImGui::Text("Bloom");
 		ImGui::Spacing();
-		ImGui::Checkbox("Enabled", &postProcessing.Bloom);
-		ImGui::SliderFloat(
-			"Threshold", &postProcessing.BloomThreshold, 0.01, 1.0);
-		ImGui::SliderInt(
-			"Blur Passes", (int*)&postProcessing.BloomBlurPasses, 1, 100);
+		ImGui::Checkbox("Enabled##BloomEnabled", &postProcessing.Bloom);
 
-		if (ImGui::SliderFloat(
-				"Blur Size", &postProcessing.BloomBlurSize, 0.01, 1.0)) {
-			game.resize(game.getFramebuffer()->getSize());
+		if (postProcessing.Bloom) {
+			ImGui::SliderFloat(
+				"Threshold", &postProcessing.BloomThreshold, 0.01, 1.0);
+
+			if (ImGui::SliderInt(
+					"Passes", (int*)&postProcessing.BloomBlurPasses, 1, 100)) {
+				game.resize(game.getFramebuffer()->getSize());
+			}
+
+			if (ImGui::SliderFloat(
+					"Downsample", &postProcessing.BloomBlurSize, 0.01, 1.0)) {
+				game.resize(game.getFramebuffer()->getSize());
+			}
 		}
 
+		ImGui::Spacing();
+		ImGui::Separator();
+		ImGui::Spacing();
+		ImGui::Text("Effects");
+		ImGui::Spacing();
+		ImGui::Checkbox("Grayscale", &postProcessing.Grayscale);
+		ImGui::Checkbox("Invert", &postProcessing.Invert);
 		ImGui::Spacing();
 	}
 
@@ -58,29 +84,32 @@ void EngineSettings::render() {
 		ShadowLayer& shadows = game.getShadows();
 
 		ImGui::Checkbox("Enabled", &shadows.Enabled);
-		ImGui::Checkbox(
-			"Cascade Indicators", &shadows.CascadeIndicatorsEnabled);
 
-		std::vector<unsigned int>& cascadeSizes = shadows.DepthMapSizes;
-		std::vector<float>& cascadeFarPlanes = shadows.DepthMapFarPlanes;
-		unsigned int* depthMapCount = &shadows.DepthMapCount;
+		if (shadows.Enabled) {
+			ImGui::Checkbox(
+				"Cascade Indicators", &shadows.CascadeIndicatorsEnabled);
 
-		for (int i = 0; i < *depthMapCount; i++) {
-			ImGui::PushID(i);
-			ImGui::Text("Cascade %d", i + 1);
-			ImGui::Spacing();
+			std::vector<unsigned int>& cascadeSizes = shadows.DepthMapSizes;
+			std::vector<float>& cascadeFarPlanes = shadows.DepthMapFarPlanes;
+			unsigned int* depthMapCount = &shadows.DepthMapCount;
 
-			if (ImGui::DragInt(
-					"Size", (int*)&cascadeSizes.at(i), 1.0f, 1, 1024 * 10)) {
-				shadows.onInit();
+			for (int i = 0; i < *depthMapCount; i++) {
+				ImGui::PushID(i);
+				ImGui::Text("Cascade %d", i + 1);
+				ImGui::Spacing();
+
+				if (ImGui::DragInt("Size", (int*)&cascadeSizes.at(i), 1.0f, 1,
+						1024 * 10)) {
+					shadows.onInit();
+				}
+
+				ImGui::DragFloat(
+					"Far Plane", &cascadeFarPlanes.at(i), 1.0f, 0.1f, 1000.0f);
+				ImGui::Spacing();
+				ImGui::Separator();
+				ImGui::Spacing();
+				ImGui::PopID();
 			}
-
-			ImGui::DragFloat(
-				"Far Plane", &cascadeFarPlanes.at(i), 1.0f, 0.1f, 1000.0f);
-			ImGui::Spacing();
-			ImGui::Separator();
-			ImGui::Spacing();
-			ImGui::PopID();
 		}
 	}
 

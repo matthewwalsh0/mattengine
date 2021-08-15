@@ -43,9 +43,15 @@ static void colourEditor(Entity& entity) {
 	if (!entity.hasComponent<ColourComponent>())
 		return;
 
+	ColourComponent& colour = entity.getComponent<ColourComponent>();
+
 	if (ImGui::CollapsingHeader("Colour", ImGuiTreeNodeFlags_DefaultOpen)) {
-		ImGui::ColorEdit3("Colour",
-			glm::value_ptr(entity.getComponent<ColourComponent>().Colour));
+		ImGui::ColorEdit3("Colour", glm::value_ptr(colour.Colour));
+		ImGui::Checkbox("Emissive", &colour.Emissive);
+
+		if (colour.Emissive) {
+			ImGui::DragFloat("Intensity", &colour.Intensity);
+		}
 	}
 }
 

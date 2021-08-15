@@ -70,7 +70,7 @@ public:
 	void drawRawTriangles(
 		const std::vector<glm::vec3>& positions, const glm::vec3& colour);
 	void drawCameraBounds(Camera& camera, const glm::vec3& colour);
-	void drawFramebuffer(Framebuffer& source);
+	void drawFramebuffer();
 	void clear(const glm::vec3& colour = {0.0f, 0.0f, 0.0f});
 	void setViewport(const glm::vec2& start, const glm::vec2& size);
 
