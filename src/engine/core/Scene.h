@@ -29,7 +29,7 @@ public:
 	Entity createEntity();
 	Entity createEntity(entt::entity rawEntity);
 	void deleteEntity(Entity& entity);
-	Entity getEntity(const std::string& tag);
+	std::optional<Entity> getEntity(const std::string& tag);
 	std::vector<Entity> getEntities(const std::string& tag);
 	std::vector<Entity> getAllEntities();
 	inline entt::registry& getRegistry() { return m_registry; };

@@ -32,11 +32,11 @@ void ShadowLayer::onBeforeRender() {
 	Camera& camera = game.getCamera();
 
 	glm::vec3 lightPosition = {0.0f, 10.0f, 0.0f};
-	Entity light = scene.getEntity("Light");
+	std::optional<Entity> light = scene.getEntity("Light");
 
-	if (light && light.hasComponent<PointLightComponent>()) {
+	if (light && light->hasComponent<PointLightComponent>()) {
 		lightPosition =
-			light.getComponent<PointLightComponent>().Light.Position;
+			light->getComponent<PointLightComponent>().Light.Position;
 	}
 
 	for (int depthMapIndex = 0; depthMapIndex < DepthMapCount;

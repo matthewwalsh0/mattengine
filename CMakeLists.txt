@@ -71,12 +71,16 @@ include_directories(src/engine/renderer/camera)
 add_library(mattengine STATIC ${SOURCES} ${GLAD} ${IMGUI})
 target_link_libraries(mattengine glfw glm freetype assimp PhysXCharacterKinematic PhysXCommon PhysXCooking PhysXExtensions PhysXFoundation PhysXPvdSDK PhysXVehicle PhysX yaml-cpp "-framework AppKit" nativefiledialog )
 
-# mattengine editor
+# editor library
 file(GLOB_RECURSE EDITOR_SOURCES "src/editor/**.h", "src/editor/**.cpp")
 include_directories(src/editor)
 include_directories(src/editor/imgui)
 add_library(mattengine_editor STATIC ${EDITOR_SOURCES})
 target_link_libraries(mattengine_editor mattengine)
+
+# editor binary 
+add_executable(editor ${EDITOR_SOURCES})
+target_link_libraries(editor mattengine_editor)
 
 # demo
 file(GLOB_RECURSE DEMO_SOURCES "src/demo/**.cpp" "src/demo/**.h")

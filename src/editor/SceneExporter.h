@@ -10,7 +10,6 @@ namespace MattEngine {
 class SceneExporter {
 public:
 	static void save(Scene& scene, const std::string& path);
-	static void load(const std::string& path);
 };
 
 } // namespace MattEngine

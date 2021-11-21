@@ -18,17 +18,17 @@ void Scene::deleteEntity(Entity& entity) {
 	entity.addComponent<DeleteComponent>();
 }
 
-Entity Scene::getEntity(const std::string& tag) {
-	entt::entity rawEntity;
+std::optional<Entity> Scene::getEntity(const std::string& tag) {
+	std::optional<Entity> foundEntity;
 
 	m_registry.view<TagComponent>().each(
 		[&](const auto entity, TagComponent& currentTag) {
 			if (currentTag.Tag == tag) {
-				rawEntity = entity;
+				foundEntity = Entity(entity, &m_registry);
 			}
 		});
 
-	return Entity(rawEntity, &m_registry);
+	return foundEntity;
 }
 
 std::vector<Entity> Scene::getEntities(const std::string& tag) {

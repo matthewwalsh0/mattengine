@@ -37,7 +37,8 @@ public:
 	Framebuffer* getFramebufferMultisampled() {
 		return m_framebufferMultisampled;
 	}
-	Scene& getScene() { return m_scene; }
+	Scene& getScene() { return *m_scene; }
+	void loadScene(std::shared_ptr<Scene> scene) { m_scene = scene; }
 	PerspectiveCamera& getCamera() { return *m_camera; }
 	void setCamera(PerspectiveCamera& camera) {
 		m_camera = &camera;
@@ -70,7 +71,7 @@ private:
 	Window& m_window;
 	float m_fps;
 	std::string m_title;
-	Scene m_scene;
+	std::shared_ptr<Scene> m_scene;
 	Framebuffer* m_framebuffer = nullptr;
 	Framebuffer* m_framebufferMultisampled = nullptr;
 	PerspectiveCamera m_defaultCamera = PerspectiveCamera();

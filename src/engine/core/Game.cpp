@@ -31,6 +31,7 @@ const float UPDATE_DELTA = 1.0f / 60;
 Game::Game(Window& window) : m_window(window), m_title(window.getTitle()) {
 	s_instance = this;
 
+	m_scene = std::make_shared<Scene>();
 	m_layers.emplace_back(new ShadowLayer());
 	m_layers.emplace_back(new PostProcessingLayer());
 }
@@ -118,7 +119,7 @@ void Game::start() {
 
 void Game::onUpdate(float deltaTime) {
 	Renderer& renderer = Renderer::getInstance();
-	Scene& scene = m_scene;
+	Scene& scene = *m_scene;
 	Window& window = Window::getInstance();
 
 	scene.onBeforeUpdate(renderer);
@@ -258,7 +259,7 @@ void Game::onUpdate(float deltaTime) {
 
 void Game::renderPass(Camera& camera) {
 	Renderer& renderer = Renderer::getInstance();
-	Scene& scene = m_scene;
+	Scene& scene = *m_scene;
 
 	m_framebufferMultisampled->bind();
 
