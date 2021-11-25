@@ -1,24 +1,26 @@
 #include "Game.h"
 
+#include "Log.h"
+#include "Mesh.h"
+#include "ModelStore.h"
+#include "PostProcessingLayer.h"
+#include "TextureStore.h"
+#include "Timer.h"
+
 #include "AnimationComponent.h"
 #include "ColourComponent.h"
 #include "DeleteComponent.h"
 #include "LightComponent.h"
-#include "Log.h"
-#include "Mesh.h"
 #include "ModelComponent.h"
-#include "ModelStore.h"
 #include "PerspectiveCameraComponent.h"
 #include "PlayerControllerComponent.h"
 #include "PointLightComponent.h"
-#include "PostProcessingLayer.h"
+#include "PythonScriptComponent.h"
 #include "RigidBodyComponent.h"
 #include "ScriptComponent.h"
 #include "SkyBoxComponent.h"
 #include "TextComponent.h"
 #include "TextureComponent.h"
-#include "TextureStore.h"
-#include "Timer.h"
 #include "TransformComponent.h"
 
 #include <stdlib.h>
@@ -166,6 +168,16 @@ void Game::onUpdate(float deltaTime) {
 			}
 
 			scriptComponent.Script->onUpdate(deltaTime, renderer, window);
+		});
+
+	scene.getRegistry().view<PythonScriptComponent>().each(
+		[&](const auto entity, PythonScriptComponent& pythonScriptComponent) {
+			if (!pythonScriptComponent.Script) {
+				pythonScriptComponent.Script =
+					PythonScript(pythonScriptComponent.Path);
+			}
+
+			pythonScriptComponent.Script->onUpdate(deltaTime);
 		});
 
 	scene.getRegistry().view<const DeleteComponent>().each(

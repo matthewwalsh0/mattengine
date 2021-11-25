@@ -4,6 +4,7 @@
 #include "LightComponent.h"
 #include "ModelComponent.h"
 #include "PointLightComponent.h"
+#include "PythonScriptComponent.h"
 #include "SkyBoxComponent.h"
 #include "TagComponent.h"
 #include "TextureComponent.h"
@@ -29,6 +30,7 @@ public:
 			glm::vec3(-1.0f, 0.5f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f));
 		cube.addComponent<ColourComponent>(glm::vec3(1.0f));
 		cube.addComponent<TextureComponent>("assets/textures/wood.jpg");
+		cube.addComponent<PythonScriptComponent>("assets/scripts/move.py");
 
 		MattEngine::Entity model = getScene().createEntity();
 		model.addComponent<TagComponent>("Dance");
