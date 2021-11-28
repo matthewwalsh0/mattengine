@@ -103,14 +103,18 @@ OrthoCamera PerspectiveCamera::getBoundingOrtho(
 						  model.Bounds[MODEL_BOUND_LEFT];
 			float height = model.Bounds[MODEL_BOUND_TOP] -
 						   model.Bounds[MODEL_BOUND_BOTTOM];
+			float depth = model.Bounds[MODEL_BOUND_BACK] -
+						  model.Bounds[MODEL_BOUND_FRONT];
 
-			offset =
-				((width * transform.Size.x) + (height * transform.Size.y)) / 2;
+			offset = ((width * transform.Size.x) + (height * transform.Size.y) +
+						 (depth * transform.Size.z)) /
+					 2;
 		} else {
-			offset = (transform.Size.x + transform.Size.y) / 2;
+			offset =
+				(transform.Size.x + transform.Size.y + transform.Size.z) / 2;
 		}
 
-		lightPosition.z += offset + 1;
+		lightPosition.z += offset;
 
 		if (lightPosition.z > front) {
 			front = lightPosition.z;
