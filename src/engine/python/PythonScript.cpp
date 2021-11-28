@@ -3,12 +3,48 @@
 #include "EnginePythonModule.h"
 #include "Log.h"
 
+#include <algorithm>
+#include <fstream>
+#include <iostream>
+#include <string>
+
 using namespace MattEngine;
 
-void PythonScript::init() {
+static void init() {
 	PyImport_AppendInittab("mattengine", &initEnginePythonModule);
 	Py_Initialize();
 	PyRun_SimpleString("import sys");
+}
+
+static std::map<std::string, PropertyType> getPropertyTypesByName(
+	const std::string& file) {
+	std::ifstream fileStream(file);
+	bool isNumber = false;
+	bool isString = false;
+	std::map<std::string, PropertyType> propertyTypesByName;
+	std::string line;
+
+	while (getline(fileStream, line)) {
+		std::string variableName = line.substr(0, line.find(" = "));
+
+		if (isNumber) {
+			propertyTypesByName[variableName] = PropertyType::NUMBER;
+			isNumber = false;
+		}
+
+		if (isString) {
+			propertyTypesByName[variableName] = PropertyType::STRING;
+			isString = false;
+		}
+
+		if (variableName == "# number") {
+			isNumber = true;
+		} else if (variableName == "# string") {
+			isString = true;
+		}
+	}
+
+	return propertyTypesByName;
 }
 
 PythonScript::PythonScript(const std::string& file) {
@@ -42,6 +78,8 @@ PythonScript::PythonScript(const std::string& file) {
 		MATTENGINE_ASSERT(
 			false, "Failed to find Python function: onUpdate", NULL);
 	}
+
+	PropertyTypesByName = getPropertyTypesByName(file);
 }
 
 void PythonScript::onUpdate(float deltaTime) {
@@ -49,4 +87,22 @@ void PythonScript::onUpdate(float deltaTime) {
 	PyTuple_SetItem(args, 0, PyFloat_FromDouble(deltaTime));
 	PyObject_CallObject(m_onUpdateFunction, args);
 	Py_DECREF(args);
+}
+
+float PythonScript::getFloatProperty(const std::string& name) {
+	return PyFloat_AsDouble(PyObject_GetAttrString(m_module, name.c_str()));
+}
+
+std::string PythonScript::getStringProperty(const std::string& name) {
+	return PyUnicode_AsUTF8(PyObject_GetAttrString(m_module, name.c_str()));
+}
+
+void PythonScript::setStringProperty(
+	const std::string& name, const std::string& value) {
+	PyObject_SetAttrString(
+		m_module, name.c_str(), PyUnicode_FromString(value.c_str()));
+}
+
+void PythonScript::setFloatProperty(const std::string& name, float value) {
+	PyObject_SetAttrString(m_module, name.c_str(), PyFloat_FromDouble(value));
 }

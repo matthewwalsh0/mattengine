@@ -11,10 +11,8 @@ class EntityList {
 public:
 	bool render();
 
-	Entity getSelectedEntity() { return m_selectedEntity; }
-
-private:
-	Entity m_selectedEntity;
+public:
+	std::optional<Entity> SelectedEntity;
 };
 
 } // namespace MattEngine::ImGuiCustom

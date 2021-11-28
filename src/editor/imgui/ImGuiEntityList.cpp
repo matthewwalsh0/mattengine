@@ -22,15 +22,19 @@ bool EntityList::render() {
 
 	std::vector<Entity> sceneEntities = game.getScene().getAllEntities();
 
+	if (!SelectedEntity && sceneEntities.size() != 0) {
+		SelectedEntity = sceneEntities[0];
+	}
+
 	for (auto& entity : sceneEntities) {
 		if (!entity.hasComponent<TagComponent>())
 			continue;
 
 		TagComponent& tag = entity.getComponent<TagComponent>();
-		bool isSelected = m_selectedEntity == entity;
+		bool isSelected = SelectedEntity && *SelectedEntity == entity;
 
 		if (ImGui::Selectable(tag.Tag.c_str(), isSelected)) {
-			m_selectedEntity = entity;
+			SelectedEntity = entity;
 			newEntitySelected = true;
 		}
 	}

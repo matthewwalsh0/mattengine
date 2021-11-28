@@ -364,6 +364,14 @@ void Game::renderPass(Camera& camera) {
 			renderer.drawModel(request);
 		});
 
+	scene.getRegistry().view<PythonScriptComponent>().each(
+		[&](const auto entity, PythonScriptComponent& pythonScriptComponent) {
+			if (!pythonScriptComponent.Script) {
+				pythonScriptComponent.Script =
+					PythonScript(pythonScriptComponent.Path);
+			}
+		});
+
 	if (RenderPhysicsObjects) {
 		scene.getRegistry().view<RigidBodyComponent>().each(
 			[&](const auto entity, RigidBodyComponent& rigidDynamic) {

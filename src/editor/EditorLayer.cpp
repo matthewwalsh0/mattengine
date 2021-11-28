@@ -33,21 +33,40 @@ void EditorLayer::onRender() {
 	Window& window = Window::getInstance();
 
 	if (ImGui::IsKeyPressed(GLFW_KEY_ENTER)) {
+		m_state = State::GAME;
+
 		window.setMouseEnabled(false);
 		window.setFocused(true);
+
 		game.setCamera(*m_gameCamera);
 		game.play();
 	}
 
-	if (ImGui::IsKeyPressed(GLFW_KEY_ESCAPE)) {
+	if (ImGui::IsKeyPressed(GLFW_KEY_U)) {
+		m_state = State::UPDATE;
+
 		window.setMouseEnabled(true);
 		window.setFocused(false);
-		game.pause();
+
 		game.setCamera(m_editorCamera);
+		game.play();
+
 		m_gameViewport.reset();
 	}
 
-	if (game.isActive()) {
+	if (ImGui::IsKeyPressed(GLFW_KEY_ESCAPE)) {
+		m_state = State::EDITOR;
+
+		window.setMouseEnabled(true);
+		window.setFocused(false);
+
+		game.pause();
+		game.setCamera(m_editorCamera);
+
+		m_gameViewport.reset();
+	}
+
+	if (m_state == State::GAME) {
 		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NoMouse;
 	} else {
 		ImGui::GetIO().ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
@@ -59,9 +78,13 @@ void EditorLayer::onRender() {
 	m_menuBar.render();
 
 	bool newEntity = m_entityList.render();
-	Entity selectedEntity = m_entityList.getSelectedEntity();
-	m_componentEditor.render(selectedEntity, newEntity);
-	m_gameViewport.render();
+	std::optional<Entity>& selectedEntity = m_entityList.SelectedEntity;
+
+	if (selectedEntity) {
+		m_componentEditor.render(*selectedEntity, newEntity);
+	}
+
+	m_gameViewport.render(m_state != State::GAME);
 
 	ImGui::PopStyleVar();
 	ImGui::Begin("Performance");

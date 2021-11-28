@@ -14,6 +14,8 @@
 
 namespace MattEngine {
 
+enum State { EDITOR, GAME, UPDATE };
+
 class EditorLayer : public ImGuiLayer {
 public:
 	void onInit() override;
@@ -30,6 +32,7 @@ private:
 	ImGuiCustom::EngineSettings m_engineSettings;
 	PerspectiveCamera m_editorCamera;
 	PerspectiveCamera* m_gameCamera;
+	State m_state = State::EDITOR;
 };
 } // namespace MattEngine
 

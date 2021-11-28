@@ -3,6 +3,7 @@
 #include "AnimationComponent.h"
 #include "ColourComponent.h"
 #include "PointLightComponent.h"
+#include "PythonScriptComponent.h"
 #include "TextureComponent.h"
 #include "TransformComponent.h"
 
@@ -144,6 +145,68 @@ static void pointLightEditor(Entity& entity) {
 	}
 }
 
+static void pythonScriptEditor(Entity& entity) {
+	if (!entity.hasComponent<PythonScriptComponent>())
+		return;
+
+	PythonScriptComponent& pythonScript =
+		entity.getComponent<PythonScriptComponent>();
+
+	if (ImGui::CollapsingHeader(
+			"Python Script", ImGuiTreeNodeFlags_DefaultOpen)) {
+
+		char path[300];
+		strcpy(path, pythonScript.Path.c_str());
+
+		if (ImGui::InputText("Path", path, 300)) {
+			pythonScript.Path = path;
+		}
+
+		if (ImGui::BeginDragDropTarget()) {
+			if (const ImGuiPayload* payload =
+					ImGui::AcceptDragDropPayload("FILE_PATH")) {
+				pythonScript.Path = (char*)payload->Data;
+			}
+
+			ImGui::EndDragDropTarget();
+		}
+
+		if (!pythonScript.Script)
+			return;
+
+		for (const auto& entry : pythonScript.Script->PropertyTypesByName) {
+			float floatInput;
+			char stringInput[300];
+
+			switch (entry.second) {
+
+			case PropertyType::NUMBER:
+
+				floatInput = pythonScript.Script->getFloatProperty(entry.first);
+				if (ImGui::DragFloat(entry.first.c_str(), &floatInput)) {
+					pythonScript.Script->setFloatProperty(
+						entry.first, floatInput);
+				}
+
+				break;
+
+			case PropertyType::STRING:
+
+				strcpy(stringInput,
+					pythonScript.Script->getStringProperty(entry.first)
+						.c_str());
+
+				if (ImGui::InputText(entry.first.c_str(), stringInput, 300)) {
+					pythonScript.Script->setStringProperty(
+						entry.first, std::string(stringInput));
+				}
+
+				break;
+			}
+		}
+	}
+}
+
 template <typename T>
 static void addComponentButton(Entity& entity, const std::string& name) {
 	if (entity.hasComponent<T>())
@@ -155,9 +218,6 @@ static void addComponentButton(Entity& entity, const std::string& name) {
 }
 
 void ComponentEditor::render(Entity& entity, bool newEntity) {
-	if (!entity)
-		return;
-
 	ImGui::Begin("Components");
 
 	if (ImGui::BeginPopupContextItem("AddComponent")) {
@@ -165,6 +225,7 @@ void ComponentEditor::render(Entity& entity, bool newEntity) {
 		addComponentButton<TextureComponent>(entity, "Texture");
 		addComponentButton<TransformComponent>(entity, "Transform");
 		addComponentButton<PointLightComponent>(entity, "Point Light");
+		addComponentButton<PythonScriptComponent>(entity, "Python Script");
 		ImGui::EndPopup();
 	}
 
@@ -177,6 +238,7 @@ void ComponentEditor::render(Entity& entity, bool newEntity) {
 	textureEditor(entity);
 	pointLightEditor(entity);
 	animationEditor(entity);
+	pythonScriptEditor(entity);
 
 	ImGui::End();
 }

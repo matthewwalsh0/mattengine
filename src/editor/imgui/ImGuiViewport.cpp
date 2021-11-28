@@ -4,7 +4,7 @@
 
 using namespace MattEngine::ImGuiCustom;
 
-void Viewport::render() {
+void Viewport::render(bool focusOnHover) {
 	Game& game = Game::getInstance();
 
 	ImGui::Begin("Game", NULL, ImGuiWindowFlags_NoScrollbar);
@@ -21,7 +21,7 @@ void Viewport::render() {
 		game.resize({screenSize.x, screenSize.y});
 	}
 
-	if (!game.isActive()) {
+	if (focusOnHover) {
 		Window::getInstance().setFocused(ImGui::IsWindowHovered());
 	}
 

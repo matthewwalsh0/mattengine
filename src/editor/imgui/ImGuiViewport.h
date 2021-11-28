@@ -7,7 +7,7 @@ namespace MattEngine::ImGuiCustom {
 
 class Viewport {
 public:
-	void render();
+	void render(bool focusOnHover);
 	void reset() { m_viewportSize = {0, 0}; }
 
 private:
