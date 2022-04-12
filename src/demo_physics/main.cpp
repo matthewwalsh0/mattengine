@@ -79,12 +79,10 @@ public:
 
 		MattEngine::Entity light = getScene().createEntity();
 		light.addComponent<TagComponent>("Light");
-		light.addComponent<TransformComponent>(
-			glm::vec3(0.0f, 200.0f, 30.0f), glm::vec3(0.5f, 0.5f, 0.5f));
-		light.addComponent<ColourComponent>(glm::vec3(1.0f, 1.0f, 1.0f));
 
 		PointLight pointLight;
 		pointLight.Position.x = -0.01f;
+		pointLight.Position.z = 10.0f;
 		pointLight.Ambient = glm::vec3(1.0f);
 		pointLight.Diffuse = glm::vec3(0.0f);
 		pointLight.Specular = glm::vec3(0.0f);

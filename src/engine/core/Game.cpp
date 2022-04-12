@@ -28,8 +28,6 @@
 
 namespace MattEngine {
 
-const float UPDATE_DELTA = 1.0f / 60;
-
 Game::Game(Window& window) : m_window(window), m_title(window.getTitle()) {
 	s_instance = this;
 
@@ -292,17 +290,15 @@ void Game::renderPass(Camera& camera) {
 	scene.getRegistry().view<SkyBoxComponent>().each(
 		[&](SkyBoxComponent& skyBox) { renderer.drawSkybox(skyBox.CubeMap); });
 
-	scene.getRegistry()
-		.view<TransformComponent, ColourComponent, LightComponent>()
-		.each([&](TransformComponent& transform, ColourComponent& colour,
-				  LightComponent& light) {
-			DrawLightRequest request;
-			request.Position = transform.Position;
-			request.Size = transform.Size;
-			request.Rotation = transform.Rotation;
-			request.Colour = colour.Colour;
+	scene.getRegistry().view<PointLightComponent>().each(
+		[&](PointLightComponent& light) {
+			DrawCubeRequest request;
+			request.Position = light.Light.Position;
+			request.Size = glm::vec3(1.0f);
+			request.Rotation = glm::quat();
+			request.Colour = glm::vec3(1.0f);
 
-			renderer.drawLight(request);
+			renderer.drawCube(request);
 		});
 
 	scene.getRegistry().view<TransformComponent, ColourComponent>().each(
@@ -410,6 +406,9 @@ void Game::renderPass(Camera& camera) {
 				renderer.drawCube(request);
 			});
 	}
+
+	for (auto& layer : m_layers)
+		(*layer).onRender();
 
 	m_framebufferMultisampled->copyToScreen();
 	m_framebufferMultisampled->copy(*m_framebuffer);

@@ -11,6 +11,10 @@ class EngineSettings {
 public:
 	void render();
 
+public:
+	bool RenderCameraBounds = false;
+	bool RenderShadowCameraBounds = false;
+
 private:
 	ImGuiCustom::ImGuiPerspectiveCamera m_perspectiveCamera;
 };

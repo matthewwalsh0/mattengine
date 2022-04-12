@@ -17,6 +17,9 @@ class PerspectiveCamera : public Camera {
 public:
 	PerspectiveCamera();
 	PerspectiveCamera(float nearPlane, float farPlane);
+	PerspectiveCamera(const PerspectiveCamera& existingCamera, float nearPlane,
+		float farPlane);
+
 	void onUpdate(float deltaTime) override;
 	OrthoCamera getBoundingOrtho(const glm::vec3& viewDirection, Scene& scene);
 

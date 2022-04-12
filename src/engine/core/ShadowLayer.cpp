@@ -15,6 +15,8 @@
 namespace MattEngine {
 
 void ShadowLayer::onInit() {
+	s_instance = this;
+
 	m_depthMaps.clear();
 
 	for (int depthMapIndex = 0; depthMapIndex < DepthMapCount;
@@ -30,14 +32,7 @@ void ShadowLayer::onBeforeRender() {
 	Game& game = Game::getInstance();
 	Scene& scene = game.getScene();
 	Camera& camera = game.getCamera();
-
-	glm::vec3 lightPosition = {0.0f, 10.0f, 0.0f};
-	std::optional<Entity> light = scene.getEntity("Light");
-
-	if (light && light->hasComponent<PointLightComponent>()) {
-		lightPosition =
-			light->getComponent<PointLightComponent>().Light.Position;
-	}
+	glm::vec3 lightPosition = getLightPosition();
 
 	for (int depthMapIndex = 0; depthMapIndex < DepthMapCount;
 		 depthMapIndex++) {
@@ -51,24 +46,15 @@ void ShadowLayer::onBeforeRender() {
 		renderer.clear({1.0f, 1.0f, 1.0f});
 
 		if (Enabled) {
-			float nearPlane = 0.01f;
 			float farPlane = DepthMapFarPlanes[depthMapIndex];
 
-			PerspectiveCamera gameCamera(nearPlane, farPlane);
-			gameCamera.setPosition(camera.getPosition());
-			gameCamera.setRotation(((PerspectiveCamera&)camera).getRotation());
-
-			OrthoCamera shadowCamera =
-				gameCamera.getBoundingOrtho(lightPosition, scene);
+			OrthoCamera shadowCamera = getShadowCamera(
+				(PerspectiveCamera&)camera, lightPosition, depthMapIndex);
 
 			glm::vec3 cascadeIndicatorColour = {1.0f, 1.0f, 1.0f};
 
 			if (CascadeIndicatorsEnabled) {
-				glm::vec3 cascadeIndicatorColourHSV = {
-					(360 / DepthMapCount) * (depthMapIndex + 1), 1.0, 1.0};
-
-				cascadeIndicatorColour =
-					rgbColor(cascadeIndicatorColourHSV) * 0.2f + 0.8f;
+				cascadeIndicatorColour = getCascadeColour(depthMapIndex);
 			}
 
 			renderer.beginShadowFrame(camera, shadowCamera, depthMapIndex,
@@ -114,4 +100,39 @@ void ShadowLayer::onBeforeRender() {
 		depthMap.unbind();
 	}
 }
+
+OrthoCamera ShadowLayer::getShadowCamera(PerspectiveCamera& camera,
+	const glm::vec3& lightPosition, int depthMapIndex) {
+	Game& game = Game::getInstance();
+	Scene& scene = game.getScene();
+	float nearPlane =
+		depthMapIndex == 0 ? 0.3f : DepthMapFarPlanes[depthMapIndex - 1];
+	float farPlane = DepthMapFarPlanes[depthMapIndex];
+	PerspectiveCamera gameCamera(
+		(PerspectiveCamera&)camera, nearPlane, farPlane);
+
+	return gameCamera.getBoundingOrtho(lightPosition, scene);
+}
+
+const glm::vec3 ShadowLayer::getCascadeColour(int depthMapIndex) {
+	glm::vec3 cascadeIndicatorColourHSV = {
+		(360 / DepthMapCount) * (depthMapIndex + 1), 1.0, 1.0};
+
+	return rgbColor(cascadeIndicatorColourHSV) * 0.2f + 0.8f;
+}
+
+const glm::vec3 ShadowLayer::getLightPosition() {
+	Game& game = Game::getInstance();
+	Scene& scene = game.getScene();
+	glm::vec3 lightPosition = {0.0f, 10.0f, 0.0f};
+	std::optional<Entity> light = scene.getEntity("Light");
+
+	if (light && light->hasComponent<PointLightComponent>()) {
+		lightPosition =
+			light->getComponent<PointLightComponent>().Light.Position;
+	}
+
+	return lightPosition;
+}
+
 } // namespace MattEngine

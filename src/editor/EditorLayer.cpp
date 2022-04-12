@@ -1,6 +1,9 @@
 #include "EditorLayer.h"
 
 #include "Game.h"
+#include "PointLightComponent.h"
+
+#include <glm/gtx/color_space.hpp>
 
 namespace MattEngine {
 
@@ -29,6 +32,33 @@ void EditorLayer::onInactive(float deltaTime) {
 }
 
 void EditorLayer::onRender() {
+	Renderer& renderer = Renderer::getInstance();
+	Game& game = Game::getInstance();
+	Scene& scene = game.getScene();
+	Camera& camera = game.getCamera();
+
+	if (m_engineSettings.RenderCameraBounds) {
+		renderer.drawCameraBounds(*m_gameCamera, glm::vec3(1.0f, 0.0f, 0.0f));
+	}
+
+	if (m_engineSettings.RenderShadowCameraBounds) {
+		ShadowLayer& shadowLayer = ShadowLayer::getInstance();
+		const glm::vec3 lightPosition = shadowLayer.getLightPosition();
+
+		for (int depthMapIndex = 0; depthMapIndex < shadowLayer.DepthMapCount;
+			 depthMapIndex++) {
+			OrthoCamera shadowCamera = shadowLayer.getShadowCamera(
+				*m_gameCamera, lightPosition, depthMapIndex);
+
+			glm::vec3 cascadeIndicatorColour =
+				shadowLayer.getCascadeColour(depthMapIndex);
+
+			renderer.drawCameraBounds(shadowCamera, cascadeIndicatorColour);
+		}
+	}
+}
+
+void EditorLayer::onRenderInternal() {
 	Game& game = Game::getInstance();
 	Window& window = Window::getInstance();
 

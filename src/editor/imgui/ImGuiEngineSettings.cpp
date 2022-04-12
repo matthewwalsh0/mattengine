@@ -75,6 +75,7 @@ void EngineSettings::render() {
 	}
 
 	if (ImGui::CollapsingHeader("Camera")) {
+		ImGui::Checkbox("Render Camera Bounds", &RenderCameraBounds);
 		ImGui::Text("Game");
 		ImGui::Spacing();
 		m_perspectiveCamera.render(game.getCamera());
@@ -86,6 +87,9 @@ void EngineSettings::render() {
 		ImGui::Checkbox("Enabled", &shadows.Enabled);
 
 		if (shadows.Enabled) {
+			ImGui::Checkbox(
+				"Render Shadow Camera Bounds", &RenderShadowCameraBounds);
+
 			ImGui::Checkbox(
 				"Cascade Indicators", &shadows.CascadeIndicatorsEnabled);
 

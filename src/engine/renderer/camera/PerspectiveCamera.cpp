@@ -22,6 +22,18 @@ PerspectiveCamera::PerspectiveCamera(float nearPlane, float farPlane)
 	m_controller.init(m_position, m_rotation);
 }
 
+PerspectiveCamera::PerspectiveCamera(
+	const PerspectiveCamera& existingCamera, float nearPlane, float farPlane) {
+	m_position = existingCamera.m_position;
+	m_rotation = existingCamera.m_rotation;
+	m_aspectRatio = existingCamera.m_aspectRatio;
+	m_nearPlane = nearPlane;
+	m_farPlane = farPlane;
+
+	invalidate();
+	m_controller.init(m_position, m_rotation);
+}
+
 void PerspectiveCamera::onUpdate(float deltaTime) {
 	if (!m_useController)
 		return;

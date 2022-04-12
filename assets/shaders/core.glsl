@@ -65,8 +65,7 @@ const float AMBIENT_INTENSITY = 0.1;
 const float SPECULAR_INTENSITY = 0.5;
 const float SPECULAR_SHININESS = 32;
 const int DEPTH_MAP_COUNT = 4;
-const float SHADOW_BIAS_MIN = 0.0001;
-const float SHADOW_BIAS_MAX = 0.5;
+const float SHADOW_BIAS = 0.005;
 const float SHADOW_COLOUR = 0.2;
 const int MAX_POINT_LIGHTS = 4;
 
@@ -156,12 +155,10 @@ vec4 calculateShadow() {
 	vec3 lightDirection =
 		normalize(u_PointLights[0].position - v_PositionWorld);
 
-	float bias = max(
-		SHADOW_BIAS_MAX * (1.0 - dot(normal, lightDirection)), SHADOW_BIAS_MIN);
-
-	float shadow = currentDepth < 1.0 && currentDepth - bias > closestDepth
-					   ? SHADOW_COLOUR
-					   : 1.0;
+	float shadow =
+		currentDepth < 1.0 && currentDepth - SHADOW_BIAS > closestDepth
+			? SHADOW_COLOUR
+			: 1.0;
 
 	vec3 indicator = u_DepthMapColour[depthMapIndex];
 

@@ -10,7 +10,7 @@ public:
 	void onInit() override;
 	void onAfterRender() override;
 
-	virtual void onRender() = 0;
+	virtual void onRenderInternal() = 0;
 };
 } // namespace MattEngine
 

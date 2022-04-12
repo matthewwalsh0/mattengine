@@ -19,6 +19,7 @@ enum State { EDITOR, GAME, UPDATE };
 class EditorLayer : public ImGuiLayer {
 public:
 	void onInit() override;
+	void onRenderInternal() override;
 	void onRender() override;
 	void onResize(unsigned int width, unsigned int height) override;
 	void onInactive(float deltaTime) override;
