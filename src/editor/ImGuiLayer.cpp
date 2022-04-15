@@ -30,6 +30,8 @@ void ImGuiLayer::onAfterRender() {
 	Renderer::getInstance().clear();
 	onRenderInternal();
 
+	// ImGui::ShowDemoWindow();
+
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }

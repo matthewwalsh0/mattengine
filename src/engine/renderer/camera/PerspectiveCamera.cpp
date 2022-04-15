@@ -88,48 +88,9 @@ OrthoCamera PerspectiveCamera::getBoundingOrtho(
 		if (lightBound.z < back) {
 			back = lightBound.z;
 		}
-	}
 
-	for (auto& entity : scene.getAllEntities()) {
-		if (!entity.hasComponent<TransformComponent>())
-			continue;
-
-		if (entity.getComponent<TagComponent>().Tag == "Floor")
-			continue;
-
-		TransformComponent& transform =
-			entity.getComponent<TransformComponent>();
-
-		glm::vec3 lightPosition =
-			lightSpaceMatrix * glm::vec4(transform.Position, 1.0);
-
-		float offset = 0;
-
-		if (entity.hasComponent<ModelComponent>()) {
-			ModelComponent& modelComponent =
-				entity.getComponent<ModelComponent>();
-			Model model =
-				ModelStore::getInstance().getModel(modelComponent.Path);
-
-			float width = model.Bounds[MODEL_BOUND_RIGHT] -
-						  model.Bounds[MODEL_BOUND_LEFT];
-			float height = model.Bounds[MODEL_BOUND_TOP] -
-						   model.Bounds[MODEL_BOUND_BOTTOM];
-			float depth = model.Bounds[MODEL_BOUND_BACK] -
-						  model.Bounds[MODEL_BOUND_FRONT];
-
-			offset = ((width * transform.Size.x) + (height * transform.Size.y) +
-						 (depth * transform.Size.z)) /
-					 2;
-		} else {
-			offset =
-				(transform.Size.x + transform.Size.y + transform.Size.z) / 2;
-		}
-
-		lightPosition.z += offset;
-
-		if (lightPosition.z > front) {
-			front = lightPosition.z;
+		if (lightBound.z > front) {
+			front = lightBound.z;
 		}
 	}
 

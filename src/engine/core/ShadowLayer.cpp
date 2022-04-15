@@ -17,13 +17,13 @@ namespace MattEngine {
 void ShadowLayer::onInit() {
 	s_instance = this;
 
-	m_depthMaps.clear();
+	DepthMaps.clear();
 
 	for (int depthMapIndex = 0; depthMapIndex < DepthMapCount;
 		 depthMapIndex++) {
 		int size = DepthMapSizes[depthMapIndex];
 		Framebuffer depthMap(size, size, true, true);
-		m_depthMaps.push_back(depthMap);
+		DepthMaps.push_back(depthMap);
 	}
 }
 
@@ -36,7 +36,7 @@ void ShadowLayer::onBeforeRender() {
 
 	for (int depthMapIndex = 0; depthMapIndex < DepthMapCount;
 		 depthMapIndex++) {
-		Framebuffer& depthMap = m_depthMaps[depthMapIndex];
+		Framebuffer& depthMap = DepthMaps[depthMapIndex];
 		depthMap.bind();
 
 		Texture(depthMap.getDepthTextureId()).bind(depthMapIndex + 1);
@@ -61,6 +61,7 @@ void ShadowLayer::onBeforeRender() {
 				farPlane, cascadeIndicatorColour);
 
 			glCullFace(GL_FRONT);
+			glEnable(GL_DEPTH_CLAMP);
 
 			scene.getRegistry()
 				.view<TransformComponent, ColourComponent, TextureComponent,
@@ -95,6 +96,7 @@ void ShadowLayer::onBeforeRender() {
 				});
 
 			glCullFace(GL_BACK);
+			glDisable(GL_DEPTH_CLAMP);
 		}
 
 		depthMap.unbind();

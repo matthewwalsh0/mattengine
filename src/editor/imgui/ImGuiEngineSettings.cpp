@@ -1,6 +1,7 @@
 #include "ImGuiEngineSettings.h"
 
 #include "Game.h"
+#include "Log.h"
 #include "PostProcessingLayer.h"
 
 using namespace MattEngine::ImGuiCustom;
@@ -9,6 +10,7 @@ void EngineSettings::render() {
 	ImGui::Begin("Engine", NULL, ImGuiWindowFlags_NoScrollbar);
 
 	Game& game = Game::getInstance();
+	ShadowLayer& shadows = game.getShadows();
 
 	if (ImGui::CollapsingHeader("Post-Processing")) {
 		ImGui::Text("Anti-Aliasing");
@@ -82,8 +84,6 @@ void EngineSettings::render() {
 	}
 
 	if (ImGui::CollapsingHeader("Shadows")) {
-		ShadowLayer& shadows = game.getShadows();
-
 		ImGui::Checkbox("Enabled", &shadows.Enabled);
 
 		if (shadows.Enabled) {
@@ -114,6 +114,38 @@ void EngineSettings::render() {
 				ImGui::Spacing();
 				ImGui::PopID();
 			}
+		}
+	}
+
+	ImGui::End();
+
+	ImGui::Begin("Shadow Maps", NULL, ImGuiWindowFlags_NoScrollbar);
+	ImVec2 screenSize = ImGui::GetContentRegionAvail();
+	bool portrait = screenSize.y > screenSize.x;
+	float aspectRatio = game.getFramebuffer()->getHeight() /
+						(float)game.getFramebuffer()->getWidth();
+
+	float width = portrait ? screenSize.y / 4 / aspectRatio : screenSize.x / 4;
+	float height = portrait ? screenSize.y / 4 : screenSize.x / 4 * aspectRatio;
+
+	if (portrait && width > screenSize.x) {
+		width = screenSize.x;
+		height = width * aspectRatio;
+	}
+
+	if (!portrait && height > screenSize.y) {
+		height = screenSize.y;
+		width = height / aspectRatio;
+	}
+
+	for (int depthMapIndex = 0; depthMapIndex < 4; depthMapIndex++) {
+		ImGui::Image(
+			ImTextureID((void*)(uintptr_t)shadows.DepthMaps[depthMapIndex]
+							.getColourTextureId()),
+			ImVec2(width, height), ImVec2(0, 1), ImVec2(1, 0));
+
+		if (!portrait) {
+			ImGui::SameLine();
 		}
 	}
 
